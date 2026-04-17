@@ -20,7 +20,7 @@ namespace ClassBellProject
             string namesComposed = string.Empty;
             foreach (string name in names)
             {
-                if (!name.Contains("ClassBellProject"))
+                if (!name.Contains("ClassBell"))
                 {
                     namesComposed += name + "\\";
                 }
@@ -41,7 +41,7 @@ namespace ClassBellProject
             string namesComposed = string.Empty;
             foreach (string name in names)
             {
-                if (!name.Contains("ClassBellProject"))
+                if (!name.Contains("ClassBell"))
                 {
                     namesComposed += name + "\\";
                 }
@@ -72,20 +72,20 @@ namespace ClassBellProject
         {
             string[] tonesPrimary = GetAllTonesPrimary();
             soundPlayerForATonePrimary.SoundLocation = tonesPrimary[position];
-            double songDuration = GetNumberOfSecondsOfATone(tonesPrimary[position]);
-            int Interval = (int)(songDuration * 1000);
+            //double songDuration = GetNumberOfSecondsOfATone(tonesPrimary[position]);
+            //int Interval = (int)(songDuration * 1000);
             soundPlayerForATonePrimary.Play();
-            await Task.Delay(5000);
+            //await Task.Delay(1000);
         }
 
         public async Task StartAToneByPositionGymnasiumAsync(int position)
         {
             string[] tonesGymnasium = GetAllTonesGymnasium();
             soundPlayerForAToneGymnasium.SoundLocation = tonesGymnasium[position];
-            double songDuration = GetNumberOfSecondsOfATone(tonesGymnasium[position]);
-            int Interval = (int)(songDuration * 1000);
+            //double songDuration = GetNumberOfSecondsOfATone(tonesGymnasium[position]);
+            //int Interval = (int)(songDuration * 1000);
             soundPlayerForAToneGymnasium.Play();
-            await Task.Delay(5000);
+            //await Task.Delay(1000);
         }
 
         private void buttonPrimary_Click(object sender, EventArgs e)

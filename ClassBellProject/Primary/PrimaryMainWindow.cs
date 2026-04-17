@@ -11,6 +11,12 @@ namespace ClassBellProject.Primary
         SoundPlayer soundPlayerForASongPrimary = new SoundPlayer();
         SoundPlayer soundPlayerForATonePrimary = new SoundPlayer();
 
+        string dayChecked = string.Empty;
+
+        Random rng = new Random();
+
+        List<string> daysSelected = new List<string>();
+
         List<string> formats = new List<string>()
         {
             "AM",
@@ -97,6 +103,16 @@ namespace ClassBellProject.Primary
             "59"
         };
 
+        Dictionary<int, string> indexesAndDays = new Dictionary<int, string>()
+        {
+            {1, "Monday"},
+            {2, "Tuesday"},
+            {3, "Wednesday"},
+            {4, "Thursday"},
+            {5, "Friday"},
+            {6, "Saturday"},
+            {7, "Sunday"}
+        };
         public PrimaryMainWindow()
         {
             InitializeComponent();
@@ -180,16 +196,13 @@ namespace ClassBellProject.Primary
             }
         }
 
-        string dayChecked;
-        List<string> days = new List<string>();
-
         public List<string> GetDaysSelected()
         {
             List<string> daysChecked = new List<string>();
 
-            days = checkedListBoxDaysPrimary.Items.Cast<string>().ToList();
+            daysSelected = checkedListBoxDaysPrimary.Items.Cast<string>().ToList();
 
-            foreach (string day in days)
+            foreach (string day in daysSelected)
             {
                 if (checkedListBoxDaysPrimary.CheckedItems.Contains(day))
                 {
@@ -618,13 +631,13 @@ namespace ClassBellProject.Primary
                         }
                         indexNumber++;
                     }
-                    else
-                    {
+                    //else
+                    //{
                         // Task.Delay - de pus de la ultimul interval, adica de la ultimul Stop,
                         // pana la primul Start al zilei urmatoare
                         //Task.Delay();
-                        int indexOfFirstDaySelected = 0;
-                        int indexOfLastDaySelected = 0;
+                        //int indexOfFirstDaySelected = 0;
+                        //int indexOfLastDaySelected = 0;
                         //for (int i = 0; i < 7; i++)
                         //{
                         //    if (daysSelected[i] == daysSelected.FirstOrDefault())
@@ -636,48 +649,48 @@ namespace ClassBellProject.Primary
                         //        indexOfLastDaySelected = i;
                         //    }
                         //}
-                        int today = (int)DateTime.Now.DayOfWeek;
-                        TimeSpan period = TimeSpan.FromDays(1);
+                        //int today = (int)DateTime.Now.DayOfWeek;
+                        //TimeSpan period = TimeSpan.FromDays(1);
                         //await Task.Delay();
-                    }
+                    //}
                 }
             }
         }
 
-        public string GetStartIntervalPrimaryByDayId(int dayId)
-        {
-            string startIntervalPrimary = string.Empty;
-            List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimary = ReadIntervalsAndChecksPrimaryFromDatabase();
-            for (int iterator = 0; iterator < IntervalsAndChecksPrimary.Count; iterator++)
-            {
-                if (IntervalsAndChecksPrimary[iterator].DayPrimaryId == dayId &&
-                    IntervalsAndChecksPrimary[iterator].Start != "" &&
-                    IntervalsAndChecksPrimary[iterator].Stop != "")
-                {
-                    startIntervalPrimary = IntervalsAndChecksPrimary[iterator].Start;
-                    break;
-                }
-            }
+        //public string GetStartIntervalPrimaryByDayId(int dayId)
+        //{
+        //    string startIntervalPrimary = string.Empty;
+        //    List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimary = ReadIntervalsAndChecksPrimaryFromDatabase();
+        //    for (int iterator = 0; iterator < IntervalsAndChecksPrimary.Count; iterator++)
+        //    {
+        //        if (IntervalsAndChecksPrimary[iterator].DayPrimaryId == dayId &&
+        //            IntervalsAndChecksPrimary[iterator].Start != "" &&
+        //            IntervalsAndChecksPrimary[iterator].Stop != "")
+        //        {
+        //            startIntervalPrimary = IntervalsAndChecksPrimary[iterator].Start;
+        //            break;
+        //        }
+        //    }
 
-            return startIntervalPrimary;
-        }
+        //    return startIntervalPrimary;
+        //}
 
-        public string GetStopIntervalPrimaryByDayId(int dayId)
-        {
-            string stopIntervalPrimary = string.Empty;
-            List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimary = ReadIntervalsAndChecksPrimaryFromDatabase();
-            for (int iterator = 0; iterator < IntervalsAndChecksPrimary.Count; iterator++)
-            {
-                if (IntervalsAndChecksPrimary[iterator].DayPrimaryId == dayId &&
-                    IntervalsAndChecksPrimary[iterator].Start != "" &&
-                    IntervalsAndChecksPrimary[iterator].Stop != "")
-                {
-                    stopIntervalPrimary = IntervalsAndChecksPrimary[iterator].Stop;
-                }
-            }
+        //public string GetStopIntervalPrimaryByDayId(int dayId)
+        //{
+        //    string stopIntervalPrimary = string.Empty;
+        //    List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimary = ReadIntervalsAndChecksPrimaryFromDatabase();
+        //    for (int iterator = 0; iterator < IntervalsAndChecksPrimary.Count; iterator++)
+        //    {
+        //        if (IntervalsAndChecksPrimary[iterator].DayPrimaryId == dayId &&
+        //            IntervalsAndChecksPrimary[iterator].Start != "" &&
+        //            IntervalsAndChecksPrimary[iterator].Stop != "")
+        //        {
+        //            stopIntervalPrimary = IntervalsAndChecksPrimary[iterator].Stop;
+        //        }
+        //    }
 
-            return stopIntervalPrimary;
-        }
+        //    return stopIntervalPrimary;
+        //}
 
         public List<IntervalsAndChecksPrimary> GetAllIntervalsAndChecksPrimaryByDayId(int dayId)
         {
@@ -696,13 +709,34 @@ namespace ClassBellProject.Primary
             return IntervalsAndChecksPrimaryToReturn;
         }
 
+        public string[] GetAllTonesPrimary()
+        {
+            string[] names = Directory.GetCurrentDirectory().Split("\\");
+            string namesComposed = string.Empty;
+            foreach (string name in names)
+            {
+                if (!name.Contains("ClassBell"))
+                {
+                    namesComposed += name + "\\";
+                }
+                else
+                {
+                    namesComposed += name + "\\" + "Tones Primary";
+                    break;
+                }
+            }
+            string[] files = Directory.GetFiles(namesComposed);
+
+            return files;
+        }
+
         public string[] GetAllSongsPrimary()
         {
             string[] names = Directory.GetCurrentDirectory().Split("\\");
             string namesComposed = string.Empty;
             foreach (string name in names)
             {
-                if (!name.Contains("ClassBellProject"))
+                if (!name.Contains("ClassBell"))
                 {
                     namesComposed += name + "\\";
                 }
@@ -717,101 +751,66 @@ namespace ClassBellProject.Primary
             return files;
         }
 
-        public string[] GetAllTonesPrimary()
+        public double GetNumberOfSecondsOfASoundPrimary(string soundLength)
         {
-            string[] names = Directory.GetCurrentDirectory().Split("\\");
-            string namesComposed = string.Empty;
-            int iterator = 0;
-            foreach (string name in names)
-            {
-                namesComposed = namesComposed + name + "\\";
-                iterator++;
-                if (iterator == 5)
-                {
-                    break;
-                }
-            }
-            namesComposed = namesComposed + "Tones Primary";
-            string[] files = Directory.GetFiles(namesComposed);
-
-            return files;
-        }
-
-        public decimal GetNumberOfSecondsOfASongPrimary(string songLength)
-        {
-            FileInfo fileInfo = new FileInfo(songLength);
-            int sample_rate = 44100;
-            int Integer_depth = 16;
+            FileInfo fileInfo = new FileInfo(soundLength);
+            int audioSampleRate = 44100;
+            int audioSampleSize = 16;
             int channels = 2;
             long file_size = fileInfo.Length;
-            decimal duration = file_size / (sample_rate * (Integer_depth / 8) * channels);
-            decimal result = Math.Round(duration);
+            double duration = file_size / (audioSampleRate * (audioSampleSize / 8.0) * channels);
 
-            return result;
-        }
-
-        public decimal GetNumberOfSecondsOfATonePrimary(string toneLength)
-        {
-            FileInfo fileInfo = new FileInfo(toneLength);
-            int sample_rate = 44100;
-            int Integer_depth = 16;
-            int channels = 2;
-            long file_size = fileInfo.Length;
-            decimal duration = file_size / (sample_rate * (Integer_depth / 8) * channels);
-            decimal result = Math.Round(duration);
-
-            return result;
+            return duration;
         }
 
         public async Task StartASongByPositionAndTimePrimaryAsync(int position, DateTime dateTime)
         {
             string[] songsPrimary = GetAllSongsPrimary();
             soundPlayerForASongPrimary.SoundLocation = songsPrimary[position];
-            decimal songDuration = GetNumberOfSecondsOfASongPrimary(songsPrimary[position]);
-            int Interval = (int)(songDuration * 1000);
-            if (dateTime.Subtract(DateTime.Now).TotalMilliseconds > Interval)
-            {
-                soundPlayerForASongPrimary.Play();
-                await Task.Delay(Interval);
-            }
-            else
-            {
-                soundPlayerForASongPrimary.Play();
-                await Task.Delay((int)Math.Abs(dateTime.Subtract(DateTime.Now).TotalMilliseconds));
-            }
+            soundPlayerForASongPrimary.Play();
+            //double songDuration = GetNumberOfSecondsOfASoundPrimary(songsPrimary[position]);
+            //int interval = (int)(songDuration * 1000);
+            //if (dateTime.Subtract(DateTime.Now).TotalMilliseconds > interval)
+            //{
+            //    soundPlayerForASongPrimary.Play();
+            //    await Task.Delay(interval);
+            //}
+            //else
+            //{
+            //    soundPlayerForASongPrimary.Play();
+            //    await Task.Delay((int)Math.Abs(dateTime.Subtract(DateTime.Now).TotalMilliseconds));
+            //}
+            //await Task.Delay(1000);
         }
 
         public async Task StartAToneByPositionPrimaryAsync(int position)
         {
             string[] tonesPrimary = GetAllTonesPrimary();
             soundPlayerForATonePrimary.SoundLocation = tonesPrimary[position];
-            decimal songDuration = GetNumberOfSecondsOfATonePrimary(tonesPrimary[position]);
-            int Interval = (int)(songDuration * 1000);
+            //double toneDuration = GetNumberOfSecondsOfASoundPrimary(tonesPrimary[position]);
+            //int interval = (int)(toneDuration * 1000);
             soundPlayerForATonePrimary.Play();
-            await Task.Delay(Interval);
+            //await Task.Delay(1000);
         }
 
         public int[] ShuffleAllSongsPrimary()
         {
             string[] songsPrimary = GetAllSongsPrimary();
-            int[] indexes = new int[songsPrimary.Length];
-            for (int i = 0; i < indexes.Length; i++)
+            int[] songsPositions = Enumerable.Range(0, songsPrimary.Length).ToArray();
+            int length = songsPrimary.Length;
+
+            while (length > 1)
             {
-                indexes[i] = -1;
-            }
-            Random random = new Random();
-            int iterator = 0;
-            while (iterator < songsPrimary.Length)
-            {
-                int number = random.Next(0, songsPrimary.Length);
-                if (!indexes.Contains(number))
-                {
-                    indexes[iterator] = number;
-                    iterator++;
-                }
+                length--;
+
+                int songPosition = rng.Next(length + 1);
+
+                int value = songsPositions[songPosition];
+                songsPositions[songPosition] = songsPositions[length];
+                songsPositions[length] = value;
             }
 
-            return indexes;
+            return songsPositions;
         }
 
         public void UpdateTableIntervalsAndChecksPrimaryForACertainDayInDatabase()
@@ -5794,7 +5793,7 @@ namespace ClassBellProject.Primary
 
         private void buttonUpdateIntervalsAndChecksForACertainDay_Click(object sender, EventArgs e)
         {
-            UpdateTableIntervalsAndChecksPrimaryForACertainDayInDatabase();
+            //UpdateTableIntervalsAndChecksPrimaryForACertainDayInDatabase();
         }
     }
 }
