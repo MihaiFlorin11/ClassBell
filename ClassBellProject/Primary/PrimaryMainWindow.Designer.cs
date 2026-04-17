@@ -691,7 +691,7 @@
             buttonStartIntervalsAndDaysPrimary.TabIndex = 66;
             buttonStartIntervalsAndDaysPrimary.Text = "Porneste Intervalele Si Zilele Pentru Redarea Melodiilor";
             buttonStartIntervalsAndDaysPrimary.UseVisualStyleBackColor = true;
-            buttonStartIntervalsAndDaysPrimary.Click += buttonStartIntervalsAndDaysPrimary_Click;
+            buttonStartIntervalsAndDaysPrimary.Click += buttonStartIntervalsAndDaysPrimary_ClickAsync;
             // 
             // comboBoxStartFormatInterval1
             // 

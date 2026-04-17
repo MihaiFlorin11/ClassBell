@@ -1,6 +1,7 @@
-﻿using System.Data;
-using System.Media;
+﻿using ClassBellProject.Common;
 using Microsoft.Data.Sqlite;
+using System.Data;
+using System.Media;
 
 namespace ClassBellProject.Primary
 {
@@ -246,21 +247,21 @@ namespace ClassBellProject.Primary
                 if (daysSelected.Contains(today))
                 {
                     // Luăm toate intervalele zilei curente
-                    var intervaleAzi = GetAllIntervalsAndChecksPrimaryByDayId((int)DateTime.Now.DayOfWeek);
+                    var intervalsAndChecksFromDatabase = GetIntervalsAndChecksFromDatabase((int)DateTime.Now.DayOfWeek, 0);
                     int[] shuffleSongs = ShuffleAllSongsPrimary();
                     int songCursor = 0;
 
                     // PARCURGEM FIECARE INTERVAL (în loc de if-uri repetate)
-                    foreach (var interval in intervaleAzi)
+                    foreach (var interval in intervalsAndChecksFromDatabase)
                     {
                         if (token.IsCancellationRequested) break;
                         if (string.IsNullOrEmpty(interval.Start) || string.IsNullOrEmpty(interval.Stop)) continue;
 
-                        DateTime oraStart = DateTime.Parse(interval.Start);
-                        DateTime oraStop = DateTime.Parse(interval.Stop);
+                        DateTime start = DateTime.Parse(interval.Start);
+                        DateTime stop = DateTime.Parse(interval.Stop);
 
                         // 1. AȘTEPTARE PÂNĂ LA START (Dacă e cazul)
-                        while (DateTime.Now < oraStart && !token.IsCancellationRequested)
+                        while (DateTime.Now < start && !token.IsCancellationRequested)
                         {
                             await Task.Delay(500, token); // Verificăm de 2 ori pe secundă
                         }
@@ -275,7 +276,7 @@ namespace ClassBellProject.Primary
                         if (interval.HoldCourse)
                         {
                             // Așteptăm să treacă ora de curs
-                            while (DateTime.Now < oraStop && !token.IsCancellationRequested)
+                            while (DateTime.Now < stop && !token.IsCancellationRequested)
                             {
                                 await Task.Delay(1000, token);
                             }
@@ -283,9 +284,9 @@ namespace ClassBellProject.Primary
                         else if (interval.HoldMusic)
                         {
                             // Cântă muzică până la ora de Stop
-                            while (DateTime.Now < oraStop && !token.IsCancellationRequested)
+                            while (DateTime.Now < stop && !token.IsCancellationRequested)
                             {
-                                await StartASongByPositionAndTimePrimaryAsync(shuffleSongs[songCursor], oraStop);
+                                await StartASongByPositionAndTimePrimaryAsync(shuffleSongs[songCursor], stop);
 
                                 songCursor = (songCursor + 1) % shuffleSongs.Length; // Reset automat la 0
                             }
@@ -761,22 +762,22 @@ namespace ClassBellProject.Primary
         //    return stopIntervalPrimary;
         //}
 
-        public List<IntervalsAndChecksPrimary> GetAllIntervalsAndChecksPrimaryByDayId(int dayId)
-        {
-            List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimaryToReturn = new List<IntervalsAndChecksPrimary>();
-            List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimary = ReadIntervalsAndChecksPrimaryFromDatabase();
-            for (int iterator = 0; iterator < IntervalsAndChecksPrimary.Count; iterator++)
-            {
-                if (IntervalsAndChecksPrimary[iterator].DayPrimaryId == dayId &&
-                    IntervalsAndChecksPrimary[iterator].Start != "" &&
-                    IntervalsAndChecksPrimary[iterator].Stop != "")
-                {
-                    IntervalsAndChecksPrimaryToReturn.Add(IntervalsAndChecksPrimary[iterator]);
-                }
-            }
+        //public List<IntervalsAndChecksPrimary> GetAllIntervalsAndChecksPrimaryByDayId(int dayId)
+        //{
+        //    List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimaryToReturn = new List<IntervalsAndChecksPrimary>();
+        //    List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimary = ReadIntervalsAndChecksPrimaryFromDatabase();
+        //    for (int iterator = 0; iterator < IntervalsAndChecksPrimary.Count; iterator++)
+        //    {
+        //        if (IntervalsAndChecksPrimary[iterator].DayPrimaryId == dayId &&
+        //            IntervalsAndChecksPrimary[iterator].Start != "" &&
+        //            IntervalsAndChecksPrimary[iterator].Stop != "")
+        //        {
+        //            IntervalsAndChecksPrimaryToReturn.Add(IntervalsAndChecksPrimary[iterator]);
+        //        }
+        //    }
 
-            return IntervalsAndChecksPrimaryToReturn;
-        }
+        //    return IntervalsAndChecksPrimaryToReturn;
+        //}
 
         public string[] GetAllTonesPrimary()
         {
@@ -4416,52 +4417,114 @@ namespace ClassBellProject.Primary
             }
         }
 
-        public List<IntervalsAndChecksPrimary> ReadIntervalsAndChecksPrimaryFromDatabase()
+        private string GetDatabasePath()
         {
-            string[] names = Directory.GetCurrentDirectory().Split("\\");
-            string namesComposed = string.Empty;
-            foreach (string name in names)
-            {
-                if (!name.Contains("ClassBellProject"))
-                {
-                    namesComposed += name + @"\";
-                }
-                else
-                {
-                    namesComposed += name + @"\" + "ClassBellProjectDatabase.db;";
-                    break;
-                }
-            }
+            // Obține folderul unde rulează aplicația (ex: C:\Proiect\Bin\Debug\)
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-            string connectionString = $"Data Source={namesComposed}";
-            SqliteConnection sqliteConnection = new SqliteConnection(connectionString);
-            sqliteConnection.Open();
-            SqliteCommand sqliteCommand = new SqliteCommand("select * from IntervalsAndChecksPrimary;", sqliteConnection);
-            SqliteDataReader reader = sqliteCommand.ExecuteReader();
-            List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimary = new List<IntervalsAndChecksPrimary>();
-            while (reader.Read())
-            {
-                IntervalsAndChecksPrimary.Add(new IntervalsAndChecksPrimary()
-                {
-                    Id = (int)(long)reader.GetValue(0),
-                    DayPrimaryId = (int)(long)reader.GetValue(1),
-                    Start = reader.GetValue(2).ToString(),
-                    Stop = reader.GetValue(3).ToString(),
-                    ExitTone = (int)(long)reader.GetValue(4) != 0,
-                    EntranceTone = (int)(long)reader.GetValue(5) != 0,
-                    HoldMusic = (int)(long)reader.GetValue(6) != 0,
-                    HoldOn = (int)(long)reader.GetValue(7) != 0,
-                    HoldCourse = (int)(long)reader.GetValue(8) != 0
-                });
-            }
-            sqliteConnection.Close();
-
-            return IntervalsAndChecksPrimary;
+            // Combină folderul cu numele fișierului bazei de date într-un mod sigur
+            // Path.Combine se ocupă singur de backslash-uri (\)
+            return Path.Combine(baseDirectory, "ClassBellProjectDatabase.db");
         }
+
+        // 1. Definim connection string-ul într-un singur loc (ex: variabilă globală sau setare)
+        private string GetConnectionString()
+        {
+            // Dacă baza de date este în folderul binar al aplicației:
+            return $"Data Source={GetDatabasePath()}";
+        }
+
+        // 2. Metoda unificată care înlocuiește vechea dependență
+        public List<TimeInterval> GetIntervalsAndChecksFromDatabase(int? cycleId = null, int? dayId = null)
+        {
+            var timeIntervals = new List<TimeInterval>();
+
+            using (var connection = new SqliteConnection(GetConnectionString()))
+            {
+                connection.Open();
+
+                // Construim SQL-ul dinamic în funcție de filtre
+                string sql = "SELECT * FROM TimeInterval WHERE 1=1";
+                if (cycleId.HasValue) sql += " AND CycleId = @cycleId";
+                if (dayId.HasValue) sql += " AND DayId = @dayId";
+                sql += " ORDER BY Start ASC";
+
+                using (var command = new SqliteCommand(sql, connection))
+                {
+                    if (cycleId.HasValue) command.Parameters.AddWithValue("@cycleId", cycleId.Value);
+                    if (dayId.HasValue) command.Parameters.AddWithValue("@dayId", dayId.Value);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            timeIntervals.Add(new TimeInterval
+                            {
+                                Id = reader.GetInt32(0),
+                                CycleId = reader.GetInt32(1),
+                                DayId = reader.GetInt32(2),
+                                Start = reader.GetString(3),
+                                Stop = reader.GetString(4),
+                                ExitTone = reader.GetBoolean(5), // SqliteDataReader știe să facă singur conversia 0/1 -> bool
+                                EntranceTone = reader.GetBoolean(6),
+                                HoldMusic = reader.GetBoolean(7),
+                                HoldOn = reader.GetBoolean(8),
+                                HoldCourse = reader.GetBoolean(9)
+                            });
+                        }
+                    }
+                }
+            }
+
+            return timeIntervals;
+        }
+
+        //public List<IntervalsAndChecksPrimary> ReadIntervalsAndChecksPrimaryFromDatabase()
+        //{
+        //    string[] names = Directory.GetCurrentDirectory().Split("\\");
+        //    string namesComposed = string.Empty;
+        //    foreach (string name in names)
+        //    {
+        //        if (!name.Contains("ClassBellProject"))
+        //        {
+        //            namesComposed += name + @"\";
+        //        }
+        //        else
+        //        {
+        //            namesComposed += name + @"\" + "ClassBellProjectDatabase.db;";
+        //            break;
+        //        }
+        //    }
+
+        //    string connectionString = $"Data Source={namesComposed}";
+        //    SqliteConnection sqliteConnection = new SqliteConnection(connectionString);
+        //    sqliteConnection.Open();
+        //    SqliteCommand sqliteCommand = new SqliteCommand("select * from IntervalsAndChecksPrimary;", sqliteConnection);
+        //    SqliteDataReader reader = sqliteCommand.ExecuteReader();
+        //    List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimary = new List<IntervalsAndChecksPrimary>();
+        //    while (reader.Read())
+        //    {
+        //        IntervalsAndChecksPrimary.Add(new IntervalsAndChecksPrimary()
+        //        {
+        //            Id = (int)(long)reader.GetValue(0),
+        //            DayPrimaryId = (int)(long)reader.GetValue(1),
+        //            Start = reader.GetValue(2).ToString(),
+        //            Stop = reader.GetValue(3).ToString(),
+        //            ExitTone = (int)(long)reader.GetValue(4) != 0,
+        //            EntranceTone = (int)(long)reader.GetValue(5) != 0,
+        //            HoldMusic = (int)(long)reader.GetValue(6) != 0,
+        //            HoldOn = (int)(long)reader.GetValue(7) != 0,
+        //            HoldCourse = (int)(long)reader.GetValue(8) != 0
+        //        });
+        //    }
+        //    sqliteConnection.Close();
+
+        //    return IntervalsAndChecksPrimary;
+        //}
 
         public void PopulateIntervalsAndChecksSelectingDay()
         {
-            List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimary = ReadIntervalsAndChecksPrimaryFromDatabase();
+            List<TimeInterval> IntervalsAndChecksPrimary = GetIntervalsAndChecksFromDatabase();
 
             string[] startIntervalComponents;
             string[] timeStartIntervalComponents;
@@ -5824,7 +5887,7 @@ namespace ClassBellProject.Primary
             }
         }
 
-        private void buttonStartIntervalsAndDaysPrimary_Click(object sender, EventArgs e)
+        private async Task buttonStartIntervalsAndDaysPrimary_ClickAsync(object sender, EventArgs e)
         {
             if (cts != null)
                 return;
@@ -5835,7 +5898,7 @@ namespace ClassBellProject.Primary
             if (daysSelected.Count > 0)
             {
                 buttonStartIntervalsAndDaysPrimary.Enabled = false;
-                _ = StartSongsAndTonesByIntervalsAndDaysPrimaryAsync(cts.Token);
+                await StartSongsAndTonesPrimaryAsync(cts.Token);
             }
             else
             {
