@@ -7,24 +7,16 @@ namespace ClassBellProject.Primary
 {
     public partial class PrimaryMainWindow : Form
     {
-        private CancellationTokenSource cts;
+        private SoundPlayer soundPlayerForASongPrimary = new SoundPlayer();
+        private SoundPlayer soundPlayerForATonePrimary = new SoundPlayer();
 
-        SoundPlayer soundPlayerForASongPrimary = new SoundPlayer();
-        SoundPlayer soundPlayerForATonePrimary = new SoundPlayer();
-
-        string dayChecked = string.Empty;
-
-        Random rng = new Random();
-
-        List<string> daysSelected = new List<string>();
-
-        List<string> formats = new List<string>()
+        private List<string> formats = new List<string>()
         {
             "AM",
             "PM"
         };
 
-        List<string> hours = new List<string>()
+        private List<string> hours = new List<string>()
         {
             "01",
             "02",
@@ -40,7 +32,7 @@ namespace ClassBellProject.Primary
             "12"
         };
 
-        List<string> minutes = new List<string>()
+        private List<string> minutes = new List<string>()
         {
             "00",
             "01",
@@ -104,16 +96,6 @@ namespace ClassBellProject.Primary
             "59"
         };
 
-        Dictionary<int, string> indexesAndDays = new Dictionary<int, string>()
-        {
-            {1, "Monday"},
-            {2, "Tuesday"},
-            {3, "Wednesday"},
-            {4, "Thursday"},
-            {5, "Friday"},
-            {6, "Saturday"},
-            {7, "Sunday"}
-        };
         public PrimaryMainWindow()
         {
             InitializeComponent();
@@ -197,44 +179,25 @@ namespace ClassBellProject.Primary
             }
         }
 
-        public List<string> GetDaysSelected()
+        public List<string> GetDaysSelectedForPrimary()
         {
-            List<string> daysChecked = new List<string>();
-
-            daysSelected = checkedListBoxDaysPrimary.Items.Cast<string>().ToList();
-
-            foreach (string day in daysSelected)
+            // Dicționar pentru conversie rapidă
+            var daysConversion = new Dictionary<string, string>
             {
-                if (checkedListBoxDaysPrimary.CheckedItems.Contains(day))
-                {
-                    switch (day)
-                    {
-                        case "Luni":
-                            daysChecked.Add(DayOfWeek.Monday.ToString());
-                            break;
-                        case "Marti":
-                            daysChecked.Add(DayOfWeek.Tuesday.ToString());
-                            break;
-                        case "Miercuri":
-                            daysChecked.Add(DayOfWeek.Wednesday.ToString());
-                            break;
-                        case "Joi":
-                            daysChecked.Add(DayOfWeek.Thursday.ToString());
-                            break;
-                        case "Vineri":
-                            daysChecked.Add(DayOfWeek.Friday.ToString());
-                            break;
-                        case "Sambata":
-                            daysChecked.Add(DayOfWeek.Saturday.ToString());
-                            break;
-                        case "Duminica":
-                            daysChecked.Add(DayOfWeek.Sunday.ToString());
-                            break;
-                    }
-                }
-            }
+                { "Luni", "Monday" },
+                { "Marti", "Tuesday" },
+                { "Miercuri", "Wednesday" },
+                { "Joi", "Thursday" },
+                { "Vineri", "Friday" },
+                { "Sambata", "Saturday" },
+                { "Duminica", "Sunday" }
+            };
 
-            return daysChecked;
+            // Luăm doar itemele care sunt bifate (CheckedItems)
+            return checkedListBoxDaysPrimary.CheckedItems.Cast<string>()
+                          .Where(day => daysConversion.ContainsKey(day))
+                          .Select(day => daysConversion[day])
+                          .ToList();
         }
 
         public async Task StartSongsAndTonesPrimaryAsync(CancellationToken token)
@@ -242,12 +205,12 @@ namespace ClassBellProject.Primary
             while (!token.IsCancellationRequested)
             {
                 string today = DateTime.Now.DayOfWeek.ToString();
-                List<string> daysSelected = GetDaysSelected();
+                List<string> daysSelected = GetDaysSelectedForPrimary();
 
                 if (daysSelected.Contains(today))
                 {
                     // Luăm toate intervalele zilei curente
-                    var intervalsAndChecksFromDatabase = GetIntervalsAndChecksFromDatabase((int)DateTime.Now.DayOfWeek, 0);
+                    var intervalsAndChecksFromDatabase = GetIntervalsAndChecksFromDatabase(0, (int)DateTime.Now.DayOfWeek);
                     int[] shuffleSongs = ShuffleAllSongsPrimary();
                     int songCursor = 0;
 
@@ -306,479 +269,6 @@ namespace ClassBellProject.Primary
             }
         }
 
-        //public async Task StartSongsAndTonesByIntervalsAndDaysPrimaryAsync(CancellationToken token)
-        //{
-            //List<string> daysSelected = GetDaysSelected();
-
-            //while (!token.IsCancellationRequested)
-            //{
-            //    for (int i = 0; i < daysSelected.Count; i++)
-            //    {
-            //        if (daysSelected[i] == DateTime.Now.DayOfWeek.ToString())
-            //        {
-            //            int[] shuffleAllSongsPrimary = ShuffleAllSongsPrimary();
-            //            int songCursor = 0;
-            //            int indexNumber = 0;
-            //            List<IntervalsAndChecksPrimary> actualIntervalsAndChecksByDayId = GetAllIntervalsAndChecksPrimaryByDayId((int)DateTime.Now.DayOfWeek);
-
-            //            if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-            //            {
-            //                if (actualIntervalsAndChecksByDayId[0].Start != "" && actualIntervalsAndChecksByDayId[0].Stop != "" &&
-            //                    DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[0].Stop))
-            //                {
-            //                    if (actualIntervalsAndChecksByDayId[0].HoldOn == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[0].Start)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[0].ExitTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(1);
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[0].HoldCourse == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[0].Stop)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[0].HoldMusic == true)
-            //                    {
-            //                        while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[0].Stop))
-            //                        {
-            //                            await StartASongByPositionAndTimePrimaryAsync(shuffleAllSongsPrimary[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[0].Stop));
-            //                            songCursor++;
-            //                            if (songCursor == shuffleAllSongsPrimary.Length)
-            //                            {
-            //                                songCursor = 0;
-            //                                //shuffleAllSongsPrimary = ShuffleAllSongsPrimary();
-            //                            }
-            //                        }
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[0].EntranceTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(0);
-            //                    }
-            //                }
-            //            }
-            //            indexNumber++;
-
-            //            if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-            //            {
-            //                if (actualIntervalsAndChecksByDayId[1].Start != "" && actualIntervalsAndChecksByDayId[1].Stop != "" &&
-            //                    DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[1].Stop))
-            //                {
-            //                    if (actualIntervalsAndChecksByDayId[1].HoldOn == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[1].Start)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[1].ExitTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(1);
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[1].HoldCourse == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[1].Stop)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[1].HoldMusic == true)
-            //                    {
-            //                        while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[1].Stop))
-            //                        {
-            //                            await StartASongByPositionAndTimePrimaryAsync(shuffleAllSongsPrimary[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[1].Stop));
-            //                            songCursor++;
-            //                            if (songCursor == shuffleAllSongsPrimary.Length)
-            //                            {
-            //                                songCursor = 0;
-            //                                //shuffleAllSongsPrimary = ShuffleAllSongsPrimary();
-            //                            }
-            //                        }
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[1].EntranceTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(0);
-            //                    }
-            //                }
-            //            }
-            //            indexNumber++;
-
-            //            if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-            //            {
-            //                if (actualIntervalsAndChecksByDayId[2].Start != "" && actualIntervalsAndChecksByDayId[2].Stop != "" &&
-            //                    DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[2].Stop))
-            //                {
-            //                    if (actualIntervalsAndChecksByDayId[2].HoldOn == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[2].Start)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[2].ExitTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(1);
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[2].HoldCourse == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[2].Stop)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[2].HoldMusic == true)
-            //                    {
-            //                        while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[2].Stop))
-            //                        {
-            //                            await StartASongByPositionAndTimePrimaryAsync(shuffleAllSongsPrimary[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[2].Stop));
-            //                            songCursor++;
-            //                            if (songCursor == shuffleAllSongsPrimary.Length)
-            //                            {
-            //                                songCursor = 0;
-            //                                //shuffleAllSongsPrimary = ShuffleAllSongsPrimary();
-            //                            }
-            //                        }
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[2].EntranceTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(0);
-            //                    }
-            //                }
-            //            }
-            //            indexNumber++;
-
-            //            if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-            //            {
-            //                if (actualIntervalsAndChecksByDayId[3].Start != "" && actualIntervalsAndChecksByDayId[3].Stop != "" &&
-            //                    DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[3].Stop))
-            //                {
-            //                    if (actualIntervalsAndChecksByDayId[3].HoldOn == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[3].Start)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[3].ExitTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(1);
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[3].HoldCourse == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[3].Stop)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[3].HoldMusic == true)
-            //                    {
-            //                        while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[3].Stop))
-            //                        {
-            //                            await StartASongByPositionAndTimePrimaryAsync(shuffleAllSongsPrimary[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[3].Stop));
-            //                            songCursor++;
-            //                            if (songCursor == shuffleAllSongsPrimary.Length)
-            //                            {
-            //                                songCursor = 0;
-            //                                //shuffleAllSongsPrimary = ShuffleAllSongsPrimary();
-            //                            }
-            //                        }
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[3].EntranceTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(0);
-            //                    }
-            //                }
-            //            }
-            //            indexNumber++;
-
-            //            if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-            //            {
-            //                if (actualIntervalsAndChecksByDayId[4].Start != "" && actualIntervalsAndChecksByDayId[4].Stop != "" &&
-            //                    DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[4].Stop))
-            //                {
-            //                    if (actualIntervalsAndChecksByDayId[4].HoldOn == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[4].Start)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[4].ExitTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(1);
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[4].HoldCourse == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[4].Stop)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[4].HoldMusic == true)
-            //                    {
-            //                        while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[4].Stop))
-            //                        {
-            //                            await StartASongByPositionAndTimePrimaryAsync(shuffleAllSongsPrimary[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[4].Stop));
-            //                            songCursor++;
-            //                            if (songCursor == shuffleAllSongsPrimary.Length)
-            //                            {
-            //                                songCursor = 0;
-            //                                //shuffleAllSongsPrimary = ShuffleAllSongsPrimary();
-            //                            }
-            //                        }
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[4].EntranceTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(0);
-            //                    }
-            //                }
-            //            }
-            //            indexNumber++;
-
-            //            if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-            //            {
-            //                if (actualIntervalsAndChecksByDayId[5].Start != "" && actualIntervalsAndChecksByDayId[5].Stop != "" &&
-            //                    DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[5].Stop))
-            //                {
-            //                    if (actualIntervalsAndChecksByDayId[5].HoldOn == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[5].Start)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[5].ExitTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(1);
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[5].HoldCourse == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[5].Stop)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[5].HoldMusic == true)
-            //                    {
-            //                        while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[5].Stop))
-            //                        {
-            //                            await StartASongByPositionAndTimePrimaryAsync(shuffleAllSongsPrimary[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[5].Stop));
-            //                            songCursor++;
-            //                            if (songCursor == shuffleAllSongsPrimary.Length)
-            //                            {
-            //                                songCursor = 0;
-            //                                //shuffleAllSongsPrimary = ShuffleAllSongsPrimary();
-            //                            }
-            //                        }
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[5].EntranceTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(0);
-            //                    }
-            //                }
-            //            }
-            //            indexNumber++;
-
-            //            if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-            //            {
-            //                if (actualIntervalsAndChecksByDayId[6].Start != "" && actualIntervalsAndChecksByDayId[6].Stop != "" &&
-            //                    DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[6].Stop))
-            //                {
-            //                    if (actualIntervalsAndChecksByDayId[6].HoldOn == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[6].Start)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[6].ExitTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(1);
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[6].HoldCourse == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[6].Stop)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[6].HoldMusic == true)
-            //                    {
-            //                        while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[6].Stop))
-            //                        {
-            //                            await StartASongByPositionAndTimePrimaryAsync(shuffleAllSongsPrimary[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[6].Stop));
-            //                            songCursor++;
-            //                            if (songCursor == shuffleAllSongsPrimary.Length)
-            //                            {
-            //                                songCursor = 0;
-            //                                //shuffleAllSongsPrimary = ShuffleAllSongsPrimary();
-            //                            }
-            //                        }
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[6].EntranceTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(0);
-            //                    }
-            //                }
-            //            }
-            //            indexNumber++;
-
-            //            if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-            //            {
-            //                if (actualIntervalsAndChecksByDayId[7].Start != "" && actualIntervalsAndChecksByDayId[7].Stop != "" &&
-            //                    DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[7].Stop))
-            //                {
-            //                    if (actualIntervalsAndChecksByDayId[7].HoldOn == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[7].Start)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[7].ExitTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(1);
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[7].HoldCourse == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[7].Stop)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[7].HoldMusic == true)
-            //                    {
-            //                        while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[7].Stop))
-            //                        {
-            //                            await StartASongByPositionAndTimePrimaryAsync(shuffleAllSongsPrimary[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[7].Stop));
-            //                            songCursor++;
-            //                            if (songCursor == shuffleAllSongsPrimary.Length)
-            //                            {
-            //                                songCursor = 0;
-            //                                //shuffleAllSongsPrimary = ShuffleAllSongsPrimary();
-            //                            }
-            //                        }
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[7].EntranceTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(0);
-            //                    }
-            //                }
-            //            }
-            //            indexNumber++;
-
-            //            if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-            //            {
-            //                if (actualIntervalsAndChecksByDayId[8].Start != "" && actualIntervalsAndChecksByDayId[8].Stop != "" &&
-            //                    DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[8].Stop))
-            //                {
-            //                    if (actualIntervalsAndChecksByDayId[8].HoldOn == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[8].Start)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[8].ExitTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(1);
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[8].HoldCourse == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[8].Stop)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[8].HoldMusic == true)
-            //                    {
-            //                        while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[8].Stop))
-            //                        {
-            //                            await StartASongByPositionAndTimePrimaryAsync(shuffleAllSongsPrimary[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[8].Stop));
-            //                            songCursor++;
-            //                            if (songCursor == shuffleAllSongsPrimary.Length)
-            //                            {
-            //                                songCursor = 0;
-            //                                //shuffleAllSongsPrimary = ShuffleAllSongsPrimary();
-            //                            }
-            //                        }
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[8].EntranceTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(0);
-            //                    }
-            //                }
-            //            }
-            //            indexNumber++;
-
-            //            if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-            //            {
-            //                if (actualIntervalsAndChecksByDayId[9].Start != "" && actualIntervalsAndChecksByDayId[9].Stop != "" &&
-            //                    DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[9].Stop))
-            //                {
-            //                    if (actualIntervalsAndChecksByDayId[9].HoldOn == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[9].Start)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[9].ExitTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(1);
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[9].HoldCourse == true)
-            //                    {
-            //                        await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[9].Stop)).TotalMilliseconds));
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[9].HoldMusic == true)
-            //                    {
-            //                        while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[9].Stop))
-            //                        {
-            //                            await StartASongByPositionAndTimePrimaryAsync(shuffleAllSongsPrimary[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[9].Stop));
-            //                            songCursor++;
-            //                            if (songCursor == shuffleAllSongsPrimary.Length)
-            //                            {
-            //                                songCursor = 0;
-            //                                //shuffleAllSongsPrimary = ShuffleAllSongsPrimary();
-            //                            }
-            //                        }
-            //                    }
-            //                    if (actualIntervalsAndChecksByDayId[9].EntranceTone == true)
-            //                    {
-            //                        await StartAToneByPositionPrimaryAsync(0);
-            //                    }
-            //                }
-            //            }
-            //            indexNumber++;
-            //        }
-            //        //else
-            //        //{
-            //            // Task.Delay - de pus de la ultimul interval, adica de la ultimul Stop,
-            //            // pana la primul Start al zilei urmatoare
-            //            //Task.Delay();
-            //            //int indexOfFirstDaySelected = 0;
-            //            //int indexOfLastDaySelected = 0;
-            //            //for (int i = 0; i < 7; i++)
-            //            //{
-            //            //    if (daysSelected[i] == daysSelected.FirstOrDefault())
-            //            //    {
-            //            //        indexOfFirstDaySelected = i;
-            //            //    }
-            //            //    if (daysSelected[i] == daysSelected.LastOrDefault())
-            //            //    {
-            //            //        indexOfLastDaySelected = i;
-            //            //    }
-            //            //}
-            //            //int today = (int)DateTime.Now.DayOfWeek;
-            //            //TimeSpan period = TimeSpan.FromDays(1);
-            //            //await Task.Delay();
-            //        //}
-            //    }
-            //}
-        //}
-
-        //public string GetStartIntervalPrimaryByDayId(int dayId)
-        //{
-        //    string startIntervalPrimary = string.Empty;
-        //    List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimary = ReadIntervalsAndChecksPrimaryFromDatabase();
-        //    for (int iterator = 0; iterator < IntervalsAndChecksPrimary.Count; iterator++)
-        //    {
-        //        if (IntervalsAndChecksPrimary[iterator].DayPrimaryId == dayId &&
-        //            IntervalsAndChecksPrimary[iterator].Start != "" &&
-        //            IntervalsAndChecksPrimary[iterator].Stop != "")
-        //        {
-        //            startIntervalPrimary = IntervalsAndChecksPrimary[iterator].Start;
-        //            break;
-        //        }
-        //    }
-
-        //    return startIntervalPrimary;
-        //}
-
-        //public string GetStopIntervalPrimaryByDayId(int dayId)
-        //{
-        //    string stopIntervalPrimary = string.Empty;
-        //    List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimary = ReadIntervalsAndChecksPrimaryFromDatabase();
-        //    for (int iterator = 0; iterator < IntervalsAndChecksPrimary.Count; iterator++)
-        //    {
-        //        if (IntervalsAndChecksPrimary[iterator].DayPrimaryId == dayId &&
-        //            IntervalsAndChecksPrimary[iterator].Start != "" &&
-        //            IntervalsAndChecksPrimary[iterator].Stop != "")
-        //        {
-        //            stopIntervalPrimary = IntervalsAndChecksPrimary[iterator].Stop;
-        //        }
-        //    }
-
-        //    return stopIntervalPrimary;
-        //}
-
-        //public List<IntervalsAndChecksPrimary> GetAllIntervalsAndChecksPrimaryByDayId(int dayId)
-        //{
-        //    List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimaryToReturn = new List<IntervalsAndChecksPrimary>();
-        //    List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimary = ReadIntervalsAndChecksPrimaryFromDatabase();
-        //    for (int iterator = 0; iterator < IntervalsAndChecksPrimary.Count; iterator++)
-        //    {
-        //        if (IntervalsAndChecksPrimary[iterator].DayPrimaryId == dayId &&
-        //            IntervalsAndChecksPrimary[iterator].Start != "" &&
-        //            IntervalsAndChecksPrimary[iterator].Stop != "")
-        //        {
-        //            IntervalsAndChecksPrimaryToReturn.Add(IntervalsAndChecksPrimary[iterator]);
-        //        }
-        //    }
-
-        //    return IntervalsAndChecksPrimaryToReturn;
-        //}
-
         public string[] GetAllTonesPrimary()
         {
             string[] names = Directory.GetCurrentDirectory().Split("\\");
@@ -821,47 +311,21 @@ namespace ClassBellProject.Primary
             return files;
         }
 
-        public double GetNumberOfSecondsOfASoundPrimary(string soundLength)
-        {
-            FileInfo fileInfo = new FileInfo(soundLength);
-            int audioSampleRate = 44100;
-            int audioSampleSize = 16;
-            int channels = 2;
-            long file_size = fileInfo.Length;
-            double duration = file_size / (audioSampleRate * (audioSampleSize / 8.0) * channels);
-
-            return duration;
-        }
-
         public async Task StartASongByPositionAndTimePrimaryAsync(int position, DateTime dateTime)
         {
             string[] songsPrimary = GetAllSongsPrimary();
             soundPlayerForASongPrimary.SoundLocation = songsPrimary[position];
             soundPlayerForASongPrimary.Play();
-            //double songDuration = GetNumberOfSecondsOfASoundPrimary(songsPrimary[position]);
-            //int interval = (int)(songDuration * 1000);
-            //if (dateTime.Subtract(DateTime.Now).TotalMilliseconds > interval)
-            //{
-            //    soundPlayerForASongPrimary.Play();
-            //    await Task.Delay(interval);
-            //}
-            //else
-            //{
-            //    soundPlayerForASongPrimary.Play();
-            //    await Task.Delay((int)Math.Abs(dateTime.Subtract(DateTime.Now).TotalMilliseconds));
-            //}
-            //await Task.Delay(1000);
         }
 
         public async Task StartAToneByPositionPrimaryAsync(int position)
         {
             string[] tonesPrimary = GetAllTonesPrimary();
             soundPlayerForATonePrimary.SoundLocation = tonesPrimary[position];
-            //double toneDuration = GetNumberOfSecondsOfASoundPrimary(tonesPrimary[position]);
-            //int interval = (int)(toneDuration * 1000);
             soundPlayerForATonePrimary.Play();
-            //await Task.Delay(1000);
         }
+
+        private Random rng = new Random();
 
         public int[] ShuffleAllSongsPrimary()
         {
@@ -883,7 +347,7 @@ namespace ClassBellProject.Primary
             return songsPositions;
         }
 
-        public void UpdateTableIntervalsAndChecksPrimaryForACertainDayInDatabase()
+        public void UpdateIntervalsAndChecksPrimaryForACertainDayInDatabase2()
         {
             string connectionString = @"Data Source=C:\Users\ComputerName\Desktop\ClassBellProject\ClassBellProjectDatabase.db;";
             SqliteConnection sqliteConnection = new SqliteConnection(connectionString);
@@ -4417,6 +3881,53 @@ namespace ClassBellProject.Primary
             }
         }
 
+        public void UpdateIntervalsAndChecksPrimaryForACertainCycleAndDayInDatabase()
+        {
+            // 1. Colectăm toate seturile de controale într-o listă
+            var allIntervals = new List<IntervalControl>
+            {
+                //new IntervalControls { Id = 1, StartH = comboBoxStartHourInterval1, StartM = comboBoxStartMinuteInterval1, StartF = comboBoxStartFormatInterval1, StopH = comboBoxStopHourInterval1, StopM = comboBoxStopMinuteInterval1, StopF = comboBoxStopFormatInterval1, Entrance = checkBoxEntranceTone1, Exit = checkBoxExitTone1, Music = checkBoxHoldMusic1, HoldOn = checkBoxHoldOn1, HoldCourse = checkBoxHoldCourse1 },
+                //new IntervalControls { Id = 2, StartH = comboBoxStartHourInterval2, ... }, // repeta pentru restul
+                //// ... restul de 8 sau 10 intervale
+            };
+
+            using (var connection = new SqliteConnection($"Data Source={GetDatabasePath()}"))
+            {
+                connection.Open();
+
+                foreach (var interval in allIntervals)
+                {
+                    // Validăm dacă intervalul este completat
+                    if (string.IsNullOrEmpty(interval.StartHour.Text) || string.IsNullOrEmpty(interval.StopHour.Text))
+                        continue;
+
+                    string startTime = $"{interval.StartHour.Text}:{interval.StartMinute.Text}:00 {interval.StartFormat.Text}";
+                    string stopTime = $"{interval.StopHour.Text}:{interval.StopMinute.Text}:00 {interval.StopFormat.Text}";
+
+                    string sql = @"UPDATE TimeInterval SET 
+                           Start = @Start, Stop = @Stop, ExitTone = @ExitTone, 
+                           EntranceTone = @EntranceTone, HoldMusic = @HoldMusic, HoldOn = @HoldOn, HoldCourse = @HoldCourse 
+                           WHERE CycleId = @CycleId AND DayId = @DayId";
+
+                    using (var cmd = new SqliteCommand(sql, connection))
+                    {
+                        cmd.Parameters.AddWithValue("@CycleId", 0); // 0 pentru Primar
+                        cmd.Parameters.AddWithValue("@DayId", interval.DayId);
+                        cmd.Parameters.AddWithValue("@Start", startTime);
+                        cmd.Parameters.AddWithValue("@Stop", stopTime);
+                        cmd.Parameters.AddWithValue("@ExitTone", interval.ExitTone.Checked ? 1 : 0);
+                        cmd.Parameters.AddWithValue("@EntranceTone", interval.EntranceTone.Checked ? 1 : 0);
+                        cmd.Parameters.AddWithValue("@HoldMusic", interval.HoldMusic.Checked ? 1 : 0);
+                        cmd.Parameters.AddWithValue("@HoldOn", interval.HoldOn.Checked ? 1 : 0);
+                        cmd.Parameters.AddWithValue("@HoldCourse", interval.HoldCourse.Checked ? 1 : 0);
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            MessageBox.Show("Datele au fost salvate cu succes!");
+        }
+
         private string GetDatabasePath()
         {
             // Obține folderul unde rulează aplicația (ex: C:\Proiect\Bin\Debug\)
@@ -4479,48 +3990,7 @@ namespace ClassBellProject.Primary
             return timeIntervals;
         }
 
-        //public List<IntervalsAndChecksPrimary> ReadIntervalsAndChecksPrimaryFromDatabase()
-        //{
-        //    string[] names = Directory.GetCurrentDirectory().Split("\\");
-        //    string namesComposed = string.Empty;
-        //    foreach (string name in names)
-        //    {
-        //        if (!name.Contains("ClassBellProject"))
-        //        {
-        //            namesComposed += name + @"\";
-        //        }
-        //        else
-        //        {
-        //            namesComposed += name + @"\" + "ClassBellProjectDatabase.db;";
-        //            break;
-        //        }
-        //    }
-
-        //    string connectionString = $"Data Source={namesComposed}";
-        //    SqliteConnection sqliteConnection = new SqliteConnection(connectionString);
-        //    sqliteConnection.Open();
-        //    SqliteCommand sqliteCommand = new SqliteCommand("select * from IntervalsAndChecksPrimary;", sqliteConnection);
-        //    SqliteDataReader reader = sqliteCommand.ExecuteReader();
-        //    List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimary = new List<IntervalsAndChecksPrimary>();
-        //    while (reader.Read())
-        //    {
-        //        IntervalsAndChecksPrimary.Add(new IntervalsAndChecksPrimary()
-        //        {
-        //            Id = (int)(long)reader.GetValue(0),
-        //            DayPrimaryId = (int)(long)reader.GetValue(1),
-        //            Start = reader.GetValue(2).ToString(),
-        //            Stop = reader.GetValue(3).ToString(),
-        //            ExitTone = (int)(long)reader.GetValue(4) != 0,
-        //            EntranceTone = (int)(long)reader.GetValue(5) != 0,
-        //            HoldMusic = (int)(long)reader.GetValue(6) != 0,
-        //            HoldOn = (int)(long)reader.GetValue(7) != 0,
-        //            HoldCourse = (int)(long)reader.GetValue(8) != 0
-        //        });
-        //    }
-        //    sqliteConnection.Close();
-
-        //    return IntervalsAndChecksPrimary;
-        //}
+        string dayChecked = string.Empty;
 
         public void PopulateIntervalsAndChecksSelectingDay()
         {
@@ -5887,35 +5357,59 @@ namespace ClassBellProject.Primary
             }
         }
 
-        private async Task buttonStartIntervalsAndDaysPrimary_ClickAsync(object sender, EventArgs e)
+        // Definirea la nivel de clasă
+        private CancellationTokenSource ctsPrimary;
+
+        private async void buttonStartIntervalsAndDaysPrimary_ClickAsync(object sender, EventArgs e)
         {
-            if (cts != null)
-                return;
+            if (ctsPrimary != null) return; // Deja rulează
 
-            cts = new CancellationTokenSource();
+            // Luăm zilele folosind metoda universală pe care am discutat-o anterior
+            List<string> daysSelected = GetDaysSelectedForPrimary();
 
-            List<string> daysSelected = GetDaysSelected();
-            if (daysSelected.Count > 0)
+            if (daysSelected.Count == 0)
             {
-                buttonStartIntervalsAndDaysPrimary.Enabled = false;
-                await StartSongsAndTonesPrimaryAsync(cts.Token);
+                MessageBox.Show("Selectează zilele pentru ciclul primar!");
+                return;
             }
-            else
+
+            buttonStartIntervalsAndDaysPrimary.Enabled = false;
+            ctsPrimary = new CancellationTokenSource();
+
+            try
             {
-                cts?.Cancel();
-                cts = null;
-                MessageBox.Show("Selecteaza anumite zile in care vrei sa functioneze aplicatia pentru ciclul primar");
-                return;
+                // Pornim procesul
+                await StartSongsAndTonesPrimaryAsync(ctsPrimary.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // Este normal să ajungem aici când apăsăm STOP, nu facem nimic special
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"A apărut o eroare: {ex.Message}");
+            }
+            finally
+            {
+                // Curățăm CTS-ul când task-ul se termină (prin eroare sau stop)
+                ctsPrimary = null;
+                buttonStartIntervalsAndDaysPrimary.Enabled = true;
             }
         }
 
         private void buttonStopIntervalsAndDaysPrimary_Click(object sender, EventArgs e)
         {
-            cts?.Cancel();
-            cts = null;
-            buttonStartIntervalsAndDaysPrimary.Enabled = true;
+            if (ctsPrimary != null)
+            {
+                ctsPrimary.Cancel();
+                ctsPrimary.Dispose(); // Foarte important să eliberezi resursele
+                ctsPrimary = null;
+            }
+
             soundPlayerForASongPrimary.Stop();
             soundPlayerForATonePrimary.Stop();
+
+            buttonStartIntervalsAndDaysPrimary.Enabled = true;
         }
 
         private void listBoxSelectDayPrimary_SelectedIndexChanged(object sender, EventArgs e)
@@ -5925,7 +5419,7 @@ namespace ClassBellProject.Primary
 
         private void buttonUpdateIntervalsAndChecksForACertainDay_Click(object sender, EventArgs e)
         {
-            //UpdateTableIntervalsAndChecksPrimaryForACertainDayInDatabase();
+            UpdateIntervalsAndChecksPrimaryForACertainCycleAndDayInDatabase();
         }
     }
 }
