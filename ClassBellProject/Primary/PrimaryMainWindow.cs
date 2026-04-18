@@ -381,3588 +381,3591 @@ namespace ClassBellProject.Primary
             return songsPositions;
         }
 
-        public void UpdateIntervalsAndChecksPrimaryForACertainDayInDatabase2()
+        public void UpdateIntervalsAndChecksPrimaryForACertainDayInDatabase()
         {
             string dayChecked = string.Empty;
 
-            string connectionString = @"Data Source=C:\Users\ComputerName\Desktop\ClassBellProject\ClassBellProjectDatabase.db;";
-            SqliteConnection sqliteConnection = new SqliteConnection(connectionString);
-            sqliteConnection.Open();
-            SqliteCommand sqliteCommand;
-            List<IntervalsAndChecksPrimary> IntervalsAndChecksPrimary = new List<IntervalsAndChecksPrimary>();
-
-            dayChecked = listBoxSelectDayPrimary.SelectedItem.ToString();
-            switch (dayChecked)
+            using (var sqliteConnection = new SqliteConnection($"Data Source={GetDatabasePath()}"))
             {
-                case "Luni":
-                    if ((comboBoxStartHourInterval1.Text != "" && comboBoxStartMinuteInterval1.Text != "" && comboBoxStartFormatInterval1.Text != "") &&
-                    (comboBoxStopHourInterval1.Text != "" && comboBoxStopMinuteInterval1.Text != "" && comboBoxStopFormatInterval1.Text != "") &&
-                    (checkBoxExitTone1.Checked == false || checkBoxExitTone1.Checked == true) &&
-                    (checkBoxEntranceTone1.Checked == false || checkBoxEntranceTone1.Checked == true) &&
-                    (checkBoxHoldMusic1.Checked == false || checkBoxHoldMusic1.Checked == true) &&
-                    (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
-                    (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
-                        {
-                            Id = 1,
-                            Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
-                            Stop = comboBoxStopHourInterval1.Text + ":" + comboBoxStopMinuteInterval1.Text + ":" + "00" + " " + comboBoxStopFormatInterval1.Text,
-                            EntranceTone = checkBoxEntranceTone1.Checked,
-                            ExitTone = checkBoxExitTone1.Checked,
-                            HoldMusic = checkBoxHoldMusic1.Checked,
-                            HoldOn = checkBoxHoldOn1.Checked,
-                            HoldCourse = checkBoxHoldCourse1.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                sqliteConnection.Open();
+                SqliteCommand sqliteCommand;
+                List<TimeInterval> TimeInterval = new List<TimeInterval>();
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
-
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval2.Text != "" && comboBoxStartMinuteInterval2.Text != "" && comboBoxStartFormatInterval2.Text != "") &&
-                        (comboBoxStopHourInterval2.Text != "" && comboBoxStopMinuteInterval2.Text != "" && comboBoxStopFormatInterval2.Text != "") &&
-                        (checkBoxEntranceTone2.Checked == false || checkBoxEntranceTone2.Checked == true) &&
-                        (checkBoxExitTone2.Checked == false || checkBoxExitTone2.Checked == true) &&
-                        (checkBoxHoldMusic2.Checked == false || checkBoxHoldMusic2.Checked == true) &&
-                        (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
-                        (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
-                        {
-                            Id = 2,
-                            Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
-                            Stop = comboBoxStopHourInterval2.Text + ":" + comboBoxStopMinuteInterval2.Text + ":" + "00" + " " + comboBoxStopFormatInterval2.Text,
-                            EntranceTone = checkBoxEntranceTone2.Checked,
-                            ExitTone = checkBoxExitTone2.Checked,
-                            HoldMusic = checkBoxHoldMusic2.Checked,
-                            HoldOn = checkBoxHoldOn2.Checked,
-                            HoldCourse = checkBoxHoldCourse2.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
-
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
-
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval3.Text != "" && comboBoxStartMinuteInterval3.Text != "" && comboBoxStartFormatInterval3.Text != "") &&
-                        (comboBoxStopHourInterval3.Text != "" && comboBoxStopMinuteInterval3.Text != "" && comboBoxStopFormatInterval3.Text != "") &&
-                        (checkBoxEntranceTone3.Checked == false || checkBoxEntranceTone3.Checked == true) &&
-                        (checkBoxExitTone3.Checked == false || checkBoxExitTone3.Checked == true) &&
-                        (checkBoxHoldMusic3.Checked == false || checkBoxHoldMusic3.Checked == true) &&
-                        (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
-                        (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
-                        {
-                            Id = 3,
-                            Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
-                            Stop = comboBoxStopHourInterval3.Text + ":" + comboBoxStopMinuteInterval3.Text + ":" + "00" + " " + comboBoxStopFormatInterval3.Text,
-                            EntranceTone = checkBoxEntranceTone3.Checked,
-                            ExitTone = checkBoxExitTone3.Checked,
-                            HoldMusic = checkBoxHoldMusic3.Checked,
-                            HoldOn = checkBoxHoldOn3.Checked,
-                            HoldCourse = checkBoxHoldCourse3.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
-
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
-
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval4.Text != "" && comboBoxStartMinuteInterval4.Text != "" && comboBoxStartFormatInterval4.Text != "") &&
-                        (comboBoxStopHourInterval4.Text != "" && comboBoxStopMinuteInterval4.Text != "" && comboBoxStopFormatInterval4.Text != "") &&
-                        (checkBoxEntranceTone4.Checked == false || checkBoxEntranceTone4.Checked == true) &&
-                        (checkBoxExitTone4.Checked == false || checkBoxExitTone4.Checked == true) &&
-                        (checkBoxHoldMusic4.Checked == false || checkBoxHoldMusic4.Checked == true) &&
-                        (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
-                        (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
-                        {
-                            Id = 4,
-                            Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
-                            Stop = comboBoxStopHourInterval4.Text + ":" + comboBoxStopMinuteInterval4.Text + ":" + "00" + " " + comboBoxStopFormatInterval4.Text,
-                            EntranceTone = checkBoxEntranceTone4.Checked,
-                            ExitTone = checkBoxExitTone4.Checked,
-                            HoldMusic = checkBoxHoldMusic4.Checked,
-                            HoldOn = checkBoxHoldOn4.Checked,
-                            HoldCourse = checkBoxHoldCourse4.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
-
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
-
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval5.Text != "" && comboBoxStartMinuteInterval5.Text != "" && comboBoxStartFormatInterval5.Text != "") &&
-                        (comboBoxStopHourInterval5.Text != "" && comboBoxStopMinuteInterval5.Text != "" && comboBoxStopFormatInterval5.Text != "") &&
-                        (checkBoxEntranceTone5.Checked == false || checkBoxEntranceTone5.Checked == true) &&
-                        (checkBoxExitTone5.Checked == false || checkBoxExitTone5.Checked == true) &&
-                        (checkBoxHoldMusic5.Checked == false || checkBoxHoldMusic5.Checked == true) &&
-                        (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
-                        (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
-                        {
-                            Id = 5,
-                            Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
-                            Stop = comboBoxStopHourInterval5.Text + ":" + comboBoxStopMinuteInterval5.Text + ":" + "00" + " " + comboBoxStopFormatInterval5.Text,
-                            EntranceTone = checkBoxEntranceTone5.Checked,
-                            ExitTone = checkBoxExitTone5.Checked,
-                            HoldMusic = checkBoxHoldMusic5.Checked,
-                            HoldOn = checkBoxHoldOn5.Checked,
-                            HoldCourse = checkBoxHoldCourse5.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
-
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
-
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval6.Text != "" && comboBoxStartMinuteInterval6.Text != "" && comboBoxStartFormatInterval6.Text != "") &&
-                        (comboBoxStopHourInterval6.Text != "" && comboBoxStopMinuteInterval6.Text != "" && comboBoxStopFormatInterval6.Text != "") &&
-                        (checkBoxEntranceTone6.Checked == false || checkBoxEntranceTone6.Checked == true) &&
-                        (checkBoxExitTone6.Checked == false || checkBoxExitTone6.Checked == true) &&
-                        (checkBoxHoldMusic6.Checked == false || checkBoxHoldMusic6.Checked == true) &&
-                        (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
-                        (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
-                        {
-                            Id = 6,
-                            Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
-                            Stop = comboBoxStopHourInterval6.Text + ":" + comboBoxStopMinuteInterval6.Text + ":" + "00" + " " + comboBoxStopFormatInterval6.Text,
-                            EntranceTone = checkBoxEntranceTone6.Checked,
-                            ExitTone = checkBoxExitTone6.Checked,
-                            HoldMusic = checkBoxHoldMusic6.Checked,
-                            HoldOn = checkBoxHoldOn6.Checked,
-                            HoldCourse = checkBoxHoldCourse6.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
-
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
-
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval7.Text != "" && comboBoxStartMinuteInterval7.Text != "" && comboBoxStartFormatInterval7.Text != "") &&
-                        (comboBoxStopHourInterval7.Text != "" && comboBoxStopMinuteInterval7.Text != "" && comboBoxStopFormatInterval7.Text != "") &&
-                        (checkBoxEntranceTone7.Checked == false || checkBoxEntranceTone7.Checked == true) &&
-                        (checkBoxExitTone7.Checked == false || checkBoxExitTone7.Checked == true) &&
-                        (checkBoxHoldMusic7.Checked == false || checkBoxHoldMusic7.Checked == true) &&
-                        (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
-                        (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
-                        {
-                            Id = 7,
-                            Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
-                            Stop = comboBoxStopHourInterval7.Text + ":" + comboBoxStopMinuteInterval7.Text + ":" + "00" + " " + comboBoxStopFormatInterval7.Text,
-                            EntranceTone = checkBoxEntranceTone7.Checked,
-                            ExitTone = checkBoxExitTone7.Checked,
-                            HoldMusic = checkBoxHoldMusic7.Checked,
-                            HoldOn = checkBoxHoldOn7.Checked,
-                            HoldCourse = checkBoxHoldCourse7.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
-
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
-
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval8.Text != "" && comboBoxStartMinuteInterval8.Text != "" && comboBoxStartFormatInterval8.Text != "") &&
-                        (comboBoxStopHourInterval8.Text != "" && comboBoxStopMinuteInterval8.Text != "" && comboBoxStopFormatInterval8.Text != "") &&
-                        (checkBoxEntranceTone8.Checked == false || checkBoxEntranceTone8.Checked == true) &&
-                        (checkBoxExitTone8.Checked == false || checkBoxExitTone8.Checked == true) &&
-                        (checkBoxHoldMusic8.Checked == false || checkBoxHoldMusic8.Checked == true) &&
-                        (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
-                        (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
-                        {
-                            Id = 8,
-                            Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
-                            Stop = comboBoxStopHourInterval8.Text + ":" + comboBoxStopMinuteInterval8.Text + ":" + "00" + " " + comboBoxStopFormatInterval8.Text,
-                            EntranceTone = checkBoxEntranceTone8.Checked,
-                            ExitTone = checkBoxExitTone8.Checked,
-                            HoldMusic = checkBoxHoldMusic8.Checked,
-                            HoldOn = checkBoxHoldOn8.Checked,
-                            HoldCourse = checkBoxHoldCourse8.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
-
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
-
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval9.Text != "" && comboBoxStartMinuteInterval9.Text != "" && comboBoxStartFormatInterval9.Text != "") &&
-                        (comboBoxStopHourInterval9.Text != "" && comboBoxStopMinuteInterval9.Text != "" && comboBoxStopFormatInterval9.Text != "") &&
-                        (checkBoxEntranceTone9.Checked == false || checkBoxEntranceTone9.Checked == true) &&
-                        (checkBoxExitTone9.Checked == false || checkBoxExitTone9.Checked == true) &&
-                        (checkBoxHoldMusic9.Checked == false || checkBoxHoldMusic9.Checked == true) &&
-                        (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
-                        (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
-                        {
-                            Id = 9,
-                            Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
-                            Stop = comboBoxStopHourInterval9.Text + ":" + comboBoxStopMinuteInterval9.Text + ":" + "00" + " " + comboBoxStopFormatInterval9.Text,
-                            EntranceTone = checkBoxEntranceTone9.Checked,
-                            ExitTone = checkBoxExitTone9.Checked,
-                            HoldMusic = checkBoxHoldMusic9.Checked,
-                            HoldOn = checkBoxHoldOn9.Checked,
-                            HoldCourse = checkBoxHoldCourse9.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
-
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
-
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval10.Text != "" && comboBoxStartMinuteInterval10.Text != "" && comboBoxStartFormatInterval10.Text != "") &&
-                        (comboBoxStopHourInterval10.Text != "" && comboBoxStopMinuteInterval10.Text != "" && comboBoxStopFormatInterval10.Text != "") &&
-                        (checkBoxEntranceTone10.Checked == false || checkBoxEntranceTone10.Checked == true) &&
-                        (checkBoxExitTone10.Checked == false || checkBoxExitTone10.Checked == true) &&
-                        (checkBoxHoldMusic10.Checked == false || checkBoxHoldMusic10.Checked == true) &&
-                        (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
-                        (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
-                        {
-                            Id = 10,
-                            Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
-                            Stop = comboBoxStopHourInterval10.Text + ":" + comboBoxStopMinuteInterval10.Text + ":" + "00" + " " + comboBoxStopFormatInterval10.Text,
-                            EntranceTone = checkBoxEntranceTone10.Checked,
-                            ExitTone = checkBoxExitTone10.Checked,
-                            HoldMusic = checkBoxHoldMusic10.Checked,
-                            HoldOn = checkBoxHoldOn10.Checked,
-                            HoldCourse = checkBoxHoldCourse10.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
-
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
-
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    break;
-
-                case "Marti":
-                    if ((comboBoxStartHourInterval1.Text != "" && comboBoxStartMinuteInterval1.Text != "" && comboBoxStartFormatInterval1.Text != "") &&
+                dayChecked = listBoxSelectDayPrimary.SelectedItem.ToString();
+                switch (dayChecked)
+                {
+                    case "Luni":
+                        if ((comboBoxStartHourInterval1.Text != "" && comboBoxStartMinuteInterval1.Text != "" && comboBoxStartFormatInterval1.Text != "") &&
                         (comboBoxStopHourInterval1.Text != "" && comboBoxStopMinuteInterval1.Text != "" && comboBoxStopFormatInterval1.Text != "") &&
                         (checkBoxExitTone1.Checked == false || checkBoxExitTone1.Checked == true) &&
                         (checkBoxEntranceTone1.Checked == false || checkBoxEntranceTone1.Checked == true) &&
                         (checkBoxHoldMusic1.Checked == false || checkBoxHoldMusic1.Checked == true) &&
                         (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
                         (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
                         {
-                            Id = 11,
-                            Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
-                            Stop = comboBoxStopHourInterval1.Text + ":" + comboBoxStopMinuteInterval1.Text + ":" + "00" + " " + comboBoxStopFormatInterval1.Text,
-                            EntranceTone = checkBoxEntranceTone1.Checked,
-                            ExitTone = checkBoxExitTone1.Checked,
-                            HoldMusic = checkBoxHoldMusic1.Checked,
-                            HoldOn = checkBoxHoldOn1.Checked,
-                            HoldCourse = checkBoxHoldCourse1.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 1,
+                                Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
+                                Stop = comboBoxStopHourInterval1.Text + ":" + comboBoxStopMinuteInterval1.Text + ":" + "00" + " " + comboBoxStopFormatInterval1.Text,
+                                EntranceTone = checkBoxEntranceTone1.Checked,
+                                ExitTone = checkBoxExitTone1.Checked,
+                                HoldMusic = checkBoxHoldMusic1.Checked,
+                                HoldOn = checkBoxHoldOn1.Checked,
+                                HoldCourse = checkBoxHoldCourse1.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval2.Text != "" && comboBoxStartMinuteInterval2.Text != "" && comboBoxStartFormatInterval2.Text != "") &&
-                        (comboBoxStopHourInterval2.Text != "" && comboBoxStopMinuteInterval2.Text != "" && comboBoxStopFormatInterval2.Text != "") &&
-                        (checkBoxEntranceTone2.Checked == false || checkBoxEntranceTone2.Checked == true) &&
-                        (checkBoxExitTone2.Checked == false || checkBoxExitTone2.Checked == true) &&
-                        (checkBoxHoldMusic2.Checked == false || checkBoxHoldMusic2.Checked == true) &&
-                        (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
-                        (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval2.Text != "" && comboBoxStartMinuteInterval2.Text != "" && comboBoxStartFormatInterval2.Text != "") &&
+                            (comboBoxStopHourInterval2.Text != "" && comboBoxStopMinuteInterval2.Text != "" && comboBoxStopFormatInterval2.Text != "") &&
+                            (checkBoxEntranceTone2.Checked == false || checkBoxEntranceTone2.Checked == true) &&
+                            (checkBoxExitTone2.Checked == false || checkBoxExitTone2.Checked == true) &&
+                            (checkBoxHoldMusic2.Checked == false || checkBoxHoldMusic2.Checked == true) &&
+                            (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
+                            (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
                         {
-                            Id = 12,
-                            Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
-                            Stop = comboBoxStopHourInterval2.Text + ":" + comboBoxStopMinuteInterval2.Text + ":" + "00" + " " + comboBoxStopFormatInterval2.Text,
-                            EntranceTone = checkBoxEntranceTone2.Checked,
-                            ExitTone = checkBoxExitTone2.Checked,
-                            HoldMusic = checkBoxHoldMusic2.Checked,
-                            HoldOn = checkBoxHoldOn2.Checked,
-                            HoldCourse = checkBoxHoldCourse2.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 2,
+                                Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
+                                Stop = comboBoxStopHourInterval2.Text + ":" + comboBoxStopMinuteInterval2.Text + ":" + "00" + " " + comboBoxStopFormatInterval2.Text,
+                                EntranceTone = checkBoxEntranceTone2.Checked,
+                                ExitTone = checkBoxExitTone2.Checked,
+                                HoldMusic = checkBoxHoldMusic2.Checked,
+                                HoldOn = checkBoxHoldOn2.Checked,
+                                HoldCourse = checkBoxHoldCourse2.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval3.Text != "" && comboBoxStartMinuteInterval3.Text != "" && comboBoxStartFormatInterval3.Text != "") &&
-                        (comboBoxStopHourInterval3.Text != "" && comboBoxStopMinuteInterval3.Text != "" && comboBoxStopFormatInterval3.Text != "") &&
-                        (checkBoxEntranceTone3.Checked == false || checkBoxEntranceTone3.Checked == true) &&
-                        (checkBoxExitTone3.Checked == false || checkBoxExitTone3.Checked == true) &&
-                        (checkBoxHoldMusic3.Checked == false || checkBoxHoldMusic3.Checked == true) &&
-                        (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
-                        (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval3.Text != "" && comboBoxStartMinuteInterval3.Text != "" && comboBoxStartFormatInterval3.Text != "") &&
+                            (comboBoxStopHourInterval3.Text != "" && comboBoxStopMinuteInterval3.Text != "" && comboBoxStopFormatInterval3.Text != "") &&
+                            (checkBoxEntranceTone3.Checked == false || checkBoxEntranceTone3.Checked == true) &&
+                            (checkBoxExitTone3.Checked == false || checkBoxExitTone3.Checked == true) &&
+                            (checkBoxHoldMusic3.Checked == false || checkBoxHoldMusic3.Checked == true) &&
+                            (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
+                            (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
                         {
-                            Id = 13,
-                            Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
-                            Stop = comboBoxStopHourInterval3.Text + ":" + comboBoxStopMinuteInterval3.Text + ":" + "00" + " " + comboBoxStopFormatInterval3.Text,
-                            EntranceTone = checkBoxEntranceTone3.Checked,
-                            ExitTone = checkBoxExitTone3.Checked,
-                            HoldMusic = checkBoxHoldMusic3.Checked,
-                            HoldOn = checkBoxHoldOn3.Checked,
-                            HoldCourse = checkBoxHoldCourse3.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 3,
+                                Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
+                                Stop = comboBoxStopHourInterval3.Text + ":" + comboBoxStopMinuteInterval3.Text + ":" + "00" + " " + comboBoxStopFormatInterval3.Text,
+                                EntranceTone = checkBoxEntranceTone3.Checked,
+                                ExitTone = checkBoxExitTone3.Checked,
+                                HoldMusic = checkBoxHoldMusic3.Checked,
+                                HoldOn = checkBoxHoldOn3.Checked,
+                                HoldCourse = checkBoxHoldCourse3.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval4.Text != "" && comboBoxStartMinuteInterval4.Text != "" && comboBoxStartFormatInterval4.Text != "") &&
-                        (comboBoxStopHourInterval4.Text != "" && comboBoxStopMinuteInterval4.Text != "" && comboBoxStopFormatInterval4.Text != "") &&
-                        (checkBoxEntranceTone4.Checked == false || checkBoxEntranceTone4.Checked == true) &&
-                        (checkBoxExitTone4.Checked == false || checkBoxExitTone4.Checked == true) &&
-                        (checkBoxHoldMusic4.Checked == false || checkBoxHoldMusic4.Checked == true) &&
-                        (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
-                        (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval4.Text != "" && comboBoxStartMinuteInterval4.Text != "" && comboBoxStartFormatInterval4.Text != "") &&
+                            (comboBoxStopHourInterval4.Text != "" && comboBoxStopMinuteInterval4.Text != "" && comboBoxStopFormatInterval4.Text != "") &&
+                            (checkBoxEntranceTone4.Checked == false || checkBoxEntranceTone4.Checked == true) &&
+                            (checkBoxExitTone4.Checked == false || checkBoxExitTone4.Checked == true) &&
+                            (checkBoxHoldMusic4.Checked == false || checkBoxHoldMusic4.Checked == true) &&
+                            (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
+                            (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
                         {
-                            Id = 14,
-                            Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
-                            Stop = comboBoxStopHourInterval4.Text + ":" + comboBoxStopMinuteInterval4.Text + ":" + "00" + " " + comboBoxStopFormatInterval4.Text,
-                            EntranceTone = checkBoxEntranceTone4.Checked,
-                            ExitTone = checkBoxExitTone4.Checked,
-                            HoldMusic = checkBoxHoldMusic4.Checked,
-                            HoldOn = checkBoxHoldOn4.Checked,
-                            HoldCourse = checkBoxHoldCourse4.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 4,
+                                Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
+                                Stop = comboBoxStopHourInterval4.Text + ":" + comboBoxStopMinuteInterval4.Text + ":" + "00" + " " + comboBoxStopFormatInterval4.Text,
+                                EntranceTone = checkBoxEntranceTone4.Checked,
+                                ExitTone = checkBoxExitTone4.Checked,
+                                HoldMusic = checkBoxHoldMusic4.Checked,
+                                HoldOn = checkBoxHoldOn4.Checked,
+                                HoldCourse = checkBoxHoldCourse4.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval5.Text != "" && comboBoxStartMinuteInterval5.Text != "" && comboBoxStartFormatInterval5.Text != "") &&
-                        (comboBoxStopHourInterval5.Text != "" && comboBoxStopMinuteInterval5.Text != "" && comboBoxStopFormatInterval5.Text != "") &&
-                        (checkBoxEntranceTone5.Checked == false || checkBoxEntranceTone5.Checked == true) &&
-                        (checkBoxExitTone5.Checked == false || checkBoxExitTone5.Checked == true) &&
-                        (checkBoxHoldMusic5.Checked == false || checkBoxHoldMusic5.Checked == true) &&
-                        (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
-                        (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval5.Text != "" && comboBoxStartMinuteInterval5.Text != "" && comboBoxStartFormatInterval5.Text != "") &&
+                            (comboBoxStopHourInterval5.Text != "" && comboBoxStopMinuteInterval5.Text != "" && comboBoxStopFormatInterval5.Text != "") &&
+                            (checkBoxEntranceTone5.Checked == false || checkBoxEntranceTone5.Checked == true) &&
+                            (checkBoxExitTone5.Checked == false || checkBoxExitTone5.Checked == true) &&
+                            (checkBoxHoldMusic5.Checked == false || checkBoxHoldMusic5.Checked == true) &&
+                            (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
+                            (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
                         {
-                            Id = 15,
-                            Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
-                            Stop = comboBoxStopHourInterval5.Text + ":" + comboBoxStopMinuteInterval5.Text + ":" + "00" + " " + comboBoxStopFormatInterval5.Text,
-                            EntranceTone = checkBoxEntranceTone5.Checked,
-                            ExitTone = checkBoxExitTone5.Checked,
-                            HoldMusic = checkBoxHoldMusic5.Checked,
-                            HoldOn = checkBoxHoldOn5.Checked,
-                            HoldCourse = checkBoxHoldCourse5.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 5,
+                                Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
+                                Stop = comboBoxStopHourInterval5.Text + ":" + comboBoxStopMinuteInterval5.Text + ":" + "00" + " " + comboBoxStopFormatInterval5.Text,
+                                EntranceTone = checkBoxEntranceTone5.Checked,
+                                ExitTone = checkBoxExitTone5.Checked,
+                                HoldMusic = checkBoxHoldMusic5.Checked,
+                                HoldOn = checkBoxHoldOn5.Checked,
+                                HoldCourse = checkBoxHoldCourse5.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval6.Text != "" && comboBoxStartMinuteInterval6.Text != "" && comboBoxStartFormatInterval6.Text != "") &&
-                        (comboBoxStopHourInterval6.Text != "" && comboBoxStopMinuteInterval6.Text != "" && comboBoxStopFormatInterval6.Text != "") &&
-                        (checkBoxEntranceTone6.Checked == false || checkBoxEntranceTone6.Checked == true) &&
-                        (checkBoxExitTone6.Checked == false || checkBoxExitTone6.Checked == true) &&
-                        (checkBoxHoldMusic6.Checked == false || checkBoxHoldMusic6.Checked == true) &&
-                        (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
-                        (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval6.Text != "" && comboBoxStartMinuteInterval6.Text != "" && comboBoxStartFormatInterval6.Text != "") &&
+                            (comboBoxStopHourInterval6.Text != "" && comboBoxStopMinuteInterval6.Text != "" && comboBoxStopFormatInterval6.Text != "") &&
+                            (checkBoxEntranceTone6.Checked == false || checkBoxEntranceTone6.Checked == true) &&
+                            (checkBoxExitTone6.Checked == false || checkBoxExitTone6.Checked == true) &&
+                            (checkBoxHoldMusic6.Checked == false || checkBoxHoldMusic6.Checked == true) &&
+                            (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
+                            (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
                         {
-                            Id = 16,
-                            Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
-                            Stop = comboBoxStopHourInterval6.Text + ":" + comboBoxStopMinuteInterval6.Text + ":" + "00" + " " + comboBoxStopFormatInterval6.Text,
-                            EntranceTone = checkBoxEntranceTone6.Checked,
-                            ExitTone = checkBoxExitTone6.Checked,
-                            HoldMusic = checkBoxHoldMusic6.Checked,
-                            HoldOn = checkBoxHoldOn6.Checked,
-                            HoldCourse = checkBoxHoldCourse6.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 6,
+                                Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
+                                Stop = comboBoxStopHourInterval6.Text + ":" + comboBoxStopMinuteInterval6.Text + ":" + "00" + " " + comboBoxStopFormatInterval6.Text,
+                                EntranceTone = checkBoxEntranceTone6.Checked,
+                                ExitTone = checkBoxExitTone6.Checked,
+                                HoldMusic = checkBoxHoldMusic6.Checked,
+                                HoldOn = checkBoxHoldOn6.Checked,
+                                HoldCourse = checkBoxHoldCourse6.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval7.Text != "" && comboBoxStartMinuteInterval7.Text != "" && comboBoxStartFormatInterval7.Text != "") &&
-                        (comboBoxStopHourInterval7.Text != "" && comboBoxStopMinuteInterval7.Text != "" && comboBoxStopFormatInterval7.Text != "") &&
-                        (checkBoxEntranceTone7.Checked == false || checkBoxEntranceTone7.Checked == true) &&
-                        (checkBoxExitTone7.Checked == false || checkBoxExitTone7.Checked == true) &&
-                        (checkBoxHoldMusic7.Checked == false || checkBoxHoldMusic7.Checked == true) &&
-                        (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
-                        (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval7.Text != "" && comboBoxStartMinuteInterval7.Text != "" && comboBoxStartFormatInterval7.Text != "") &&
+                            (comboBoxStopHourInterval7.Text != "" && comboBoxStopMinuteInterval7.Text != "" && comboBoxStopFormatInterval7.Text != "") &&
+                            (checkBoxEntranceTone7.Checked == false || checkBoxEntranceTone7.Checked == true) &&
+                            (checkBoxExitTone7.Checked == false || checkBoxExitTone7.Checked == true) &&
+                            (checkBoxHoldMusic7.Checked == false || checkBoxHoldMusic7.Checked == true) &&
+                            (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
+                            (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
                         {
-                            Id = 17,
-                            Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
-                            Stop = comboBoxStopHourInterval7.Text + ":" + comboBoxStopMinuteInterval7.Text + ":" + "00" + " " + comboBoxStopFormatInterval7.Text,
-                            EntranceTone = checkBoxEntranceTone7.Checked,
-                            ExitTone = checkBoxExitTone7.Checked,
-                            HoldMusic = checkBoxHoldMusic7.Checked,
-                            HoldOn = checkBoxHoldOn7.Checked,
-                            HoldCourse = checkBoxHoldCourse7.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 7,
+                                Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
+                                Stop = comboBoxStopHourInterval7.Text + ":" + comboBoxStopMinuteInterval7.Text + ":" + "00" + " " + comboBoxStopFormatInterval7.Text,
+                                EntranceTone = checkBoxEntranceTone7.Checked,
+                                ExitTone = checkBoxExitTone7.Checked,
+                                HoldMusic = checkBoxHoldMusic7.Checked,
+                                HoldOn = checkBoxHoldOn7.Checked,
+                                HoldCourse = checkBoxHoldCourse7.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval8.Text != "" && comboBoxStartMinuteInterval8.Text != "" && comboBoxStartFormatInterval8.Text != "") &&
-                        (comboBoxStopHourInterval8.Text != "" && comboBoxStopMinuteInterval8.Text != "" && comboBoxStopFormatInterval8.Text != "") &&
-                        (checkBoxEntranceTone8.Checked == false || checkBoxEntranceTone8.Checked == true) &&
-                        (checkBoxExitTone8.Checked == false || checkBoxExitTone8.Checked == true) &&
-                        (checkBoxHoldMusic8.Checked == false || checkBoxHoldMusic8.Checked == true) &&
-                        (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
-                        (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval8.Text != "" && comboBoxStartMinuteInterval8.Text != "" && comboBoxStartFormatInterval8.Text != "") &&
+                            (comboBoxStopHourInterval8.Text != "" && comboBoxStopMinuteInterval8.Text != "" && comboBoxStopFormatInterval8.Text != "") &&
+                            (checkBoxEntranceTone8.Checked == false || checkBoxEntranceTone8.Checked == true) &&
+                            (checkBoxExitTone8.Checked == false || checkBoxExitTone8.Checked == true) &&
+                            (checkBoxHoldMusic8.Checked == false || checkBoxHoldMusic8.Checked == true) &&
+                            (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
+                            (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
                         {
-                            Id = 18,
-                            Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
-                            Stop = comboBoxStopHourInterval8.Text + ":" + comboBoxStopMinuteInterval8.Text + ":" + "00" + " " + comboBoxStopFormatInterval8.Text,
-                            EntranceTone = checkBoxEntranceTone8.Checked,
-                            ExitTone = checkBoxExitTone8.Checked,
-                            HoldMusic = checkBoxHoldMusic8.Checked,
-                            HoldOn = checkBoxHoldOn8.Checked,
-                            HoldCourse = checkBoxHoldCourse8.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 8,
+                                Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
+                                Stop = comboBoxStopHourInterval8.Text + ":" + comboBoxStopMinuteInterval8.Text + ":" + "00" + " " + comboBoxStopFormatInterval8.Text,
+                                EntranceTone = checkBoxEntranceTone8.Checked,
+                                ExitTone = checkBoxExitTone8.Checked,
+                                HoldMusic = checkBoxHoldMusic8.Checked,
+                                HoldOn = checkBoxHoldOn8.Checked,
+                                HoldCourse = checkBoxHoldCourse8.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval9.Text != "" && comboBoxStartMinuteInterval9.Text != "" && comboBoxStartFormatInterval9.Text != "") &&
-                        (comboBoxStopHourInterval9.Text != "" && comboBoxStopMinuteInterval9.Text != "" && comboBoxStopFormatInterval9.Text != "") &&
-                        (checkBoxEntranceTone9.Checked == false || checkBoxEntranceTone9.Checked == true) &&
-                        (checkBoxExitTone9.Checked == false || checkBoxExitTone9.Checked == true) &&
-                        (checkBoxHoldMusic9.Checked == false || checkBoxHoldMusic9.Checked == true) &&
-                        (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
-                        (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval9.Text != "" && comboBoxStartMinuteInterval9.Text != "" && comboBoxStartFormatInterval9.Text != "") &&
+                            (comboBoxStopHourInterval9.Text != "" && comboBoxStopMinuteInterval9.Text != "" && comboBoxStopFormatInterval9.Text != "") &&
+                            (checkBoxEntranceTone9.Checked == false || checkBoxEntranceTone9.Checked == true) &&
+                            (checkBoxExitTone9.Checked == false || checkBoxExitTone9.Checked == true) &&
+                            (checkBoxHoldMusic9.Checked == false || checkBoxHoldMusic9.Checked == true) &&
+                            (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
+                            (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
                         {
-                            Id = 19,
-                            Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
-                            Stop = comboBoxStopHourInterval9.Text + ":" + comboBoxStopMinuteInterval9.Text + ":" + "00" + " " + comboBoxStopFormatInterval9.Text,
-                            EntranceTone = checkBoxEntranceTone9.Checked,
-                            ExitTone = checkBoxExitTone9.Checked,
-                            HoldMusic = checkBoxHoldMusic9.Checked,
-                            HoldOn = checkBoxHoldOn9.Checked,
-                            HoldCourse = checkBoxHoldCourse9.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 9,
+                                Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
+                                Stop = comboBoxStopHourInterval9.Text + ":" + comboBoxStopMinuteInterval9.Text + ":" + "00" + " " + comboBoxStopFormatInterval9.Text,
+                                EntranceTone = checkBoxEntranceTone9.Checked,
+                                ExitTone = checkBoxExitTone9.Checked,
+                                HoldMusic = checkBoxHoldMusic9.Checked,
+                                HoldOn = checkBoxHoldOn9.Checked,
+                                HoldCourse = checkBoxHoldCourse9.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval10.Text != "" && comboBoxStartMinuteInterval10.Text != "" && comboBoxStartFormatInterval10.Text != "") &&
-                        (comboBoxStopHourInterval10.Text != "" && comboBoxStopMinuteInterval10.Text != "" && comboBoxStopFormatInterval10.Text != "") &&
-                        (checkBoxEntranceTone10.Checked == false || checkBoxEntranceTone10.Checked == true) &&
-                        (checkBoxExitTone10.Checked == false || checkBoxExitTone10.Checked == true) &&
-                        (checkBoxHoldMusic10.Checked == false || checkBoxHoldMusic10.Checked == true) &&
-                        (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
-                        (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval10.Text != "" && comboBoxStartMinuteInterval10.Text != "" && comboBoxStartFormatInterval10.Text != "") &&
+                            (comboBoxStopHourInterval10.Text != "" && comboBoxStopMinuteInterval10.Text != "" && comboBoxStopFormatInterval10.Text != "") &&
+                            (checkBoxEntranceTone10.Checked == false || checkBoxEntranceTone10.Checked == true) &&
+                            (checkBoxExitTone10.Checked == false || checkBoxExitTone10.Checked == true) &&
+                            (checkBoxHoldMusic10.Checked == false || checkBoxHoldMusic10.Checked == true) &&
+                            (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
+                            (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
                         {
-                            Id = 20,
-                            Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
-                            Stop = comboBoxStopHourInterval10.Text + ":" + comboBoxStopMinuteInterval10.Text + ":" + "00" + " " + comboBoxStopFormatInterval10.Text,
-                            EntranceTone = checkBoxEntranceTone10.Checked,
-                            ExitTone = checkBoxExitTone10.Checked,
-                            HoldMusic = checkBoxHoldMusic10.Checked,
-                            HoldOn = checkBoxHoldOn10.Checked,
-                            HoldCourse = checkBoxHoldCourse10.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 10,
+                                Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
+                                Stop = comboBoxStopHourInterval10.Text + ":" + comboBoxStopMinuteInterval10.Text + ":" + "00" + " " + comboBoxStopFormatInterval10.Text,
+                                EntranceTone = checkBoxEntranceTone10.Checked,
+                                ExitTone = checkBoxExitTone10.Checked,
+                                HoldMusic = checkBoxHoldMusic10.Checked,
+                                HoldOn = checkBoxHoldOn10.Checked,
+                                HoldCourse = checkBoxHoldCourse10.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    break;
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        break;
 
-                case "Miercuri":
-                    if ((comboBoxStartHourInterval1.Text != "" && comboBoxStartMinuteInterval1.Text != "" && comboBoxStartFormatInterval1.Text != "") &&
-                    (comboBoxStopHourInterval1.Text != "" && comboBoxStopMinuteInterval1.Text != "" && comboBoxStopFormatInterval1.Text != "") &&
-                    (checkBoxExitTone1.Checked == false || checkBoxExitTone1.Checked == true) &&
-                    (checkBoxEntranceTone1.Checked == false || checkBoxEntranceTone1.Checked == true) &&
-                    (checkBoxHoldMusic1.Checked == false || checkBoxHoldMusic1.Checked == true) &&
-                    (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
-                    (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                    case "Marti":
+                        if ((comboBoxStartHourInterval1.Text != "" && comboBoxStartMinuteInterval1.Text != "" && comboBoxStartFormatInterval1.Text != "") &&
+                            (comboBoxStopHourInterval1.Text != "" && comboBoxStopMinuteInterval1.Text != "" && comboBoxStopFormatInterval1.Text != "") &&
+                            (checkBoxExitTone1.Checked == false || checkBoxExitTone1.Checked == true) &&
+                            (checkBoxEntranceTone1.Checked == false || checkBoxEntranceTone1.Checked == true) &&
+                            (checkBoxHoldMusic1.Checked == false || checkBoxHoldMusic1.Checked == true) &&
+                            (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
+                            (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
                         {
-                            Id = 21,
-                            Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
-                            Stop = comboBoxStopHourInterval1.Text + ":" + comboBoxStopMinuteInterval1.Text + ":" + "00" + " " + comboBoxStopFormatInterval1.Text,
-                            EntranceTone = checkBoxEntranceTone1.Checked,
-                            ExitTone = checkBoxExitTone1.Checked,
-                            HoldMusic = checkBoxHoldMusic1.Checked,
-                            HoldOn = checkBoxHoldOn1.Checked,
-                            HoldCourse = checkBoxHoldCourse1.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 11,
+                                Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
+                                Stop = comboBoxStopHourInterval1.Text + ":" + comboBoxStopMinuteInterval1.Text + ":" + "00" + " " + comboBoxStopFormatInterval1.Text,
+                                EntranceTone = checkBoxEntranceTone1.Checked,
+                                ExitTone = checkBoxExitTone1.Checked,
+                                HoldMusic = checkBoxHoldMusic1.Checked,
+                                HoldOn = checkBoxHoldOn1.Checked,
+                                HoldCourse = checkBoxHoldCourse1.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval2.Text != "" && comboBoxStartMinuteInterval2.Text != "" && comboBoxStartFormatInterval2.Text != "") &&
-                        (comboBoxStopHourInterval2.Text != "" && comboBoxStopMinuteInterval2.Text != "" && comboBoxStopFormatInterval2.Text != "") &&
-                        (checkBoxEntranceTone2.Checked == false || checkBoxEntranceTone2.Checked == true) &&
-                        (checkBoxExitTone2.Checked == false || checkBoxExitTone2.Checked == true) &&
-                        (checkBoxHoldMusic2.Checked == false || checkBoxHoldMusic2.Checked == true) &&
-                        (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
-                        (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval2.Text != "" && comboBoxStartMinuteInterval2.Text != "" && comboBoxStartFormatInterval2.Text != "") &&
+                            (comboBoxStopHourInterval2.Text != "" && comboBoxStopMinuteInterval2.Text != "" && comboBoxStopFormatInterval2.Text != "") &&
+                            (checkBoxEntranceTone2.Checked == false || checkBoxEntranceTone2.Checked == true) &&
+                            (checkBoxExitTone2.Checked == false || checkBoxExitTone2.Checked == true) &&
+                            (checkBoxHoldMusic2.Checked == false || checkBoxHoldMusic2.Checked == true) &&
+                            (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
+                            (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
                         {
-                            Id = 22,
-                            Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
-                            Stop = comboBoxStopHourInterval2.Text + ":" + comboBoxStopMinuteInterval2.Text + ":" + "00" + " " + comboBoxStopFormatInterval2.Text,
-                            EntranceTone = checkBoxEntranceTone2.Checked,
-                            ExitTone = checkBoxExitTone2.Checked,
-                            HoldMusic = checkBoxHoldMusic2.Checked,
-                            HoldOn = checkBoxHoldOn2.Checked,
-                            HoldCourse = checkBoxHoldCourse2.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 12,
+                                Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
+                                Stop = comboBoxStopHourInterval2.Text + ":" + comboBoxStopMinuteInterval2.Text + ":" + "00" + " " + comboBoxStopFormatInterval2.Text,
+                                EntranceTone = checkBoxEntranceTone2.Checked,
+                                ExitTone = checkBoxExitTone2.Checked,
+                                HoldMusic = checkBoxHoldMusic2.Checked,
+                                HoldOn = checkBoxHoldOn2.Checked,
+                                HoldCourse = checkBoxHoldCourse2.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval3.Text != "" && comboBoxStartMinuteInterval3.Text != "" && comboBoxStartFormatInterval3.Text != "") &&
-                        (comboBoxStopHourInterval3.Text != "" && comboBoxStopMinuteInterval3.Text != "" && comboBoxStopFormatInterval3.Text != "") &&
-                        (checkBoxEntranceTone3.Checked == false || checkBoxEntranceTone3.Checked == true) &&
-                        (checkBoxExitTone3.Checked == false || checkBoxExitTone3.Checked == true) &&
-                        (checkBoxHoldMusic3.Checked == false || checkBoxHoldMusic3.Checked == true) &&
-                        (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
-                        (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval3.Text != "" && comboBoxStartMinuteInterval3.Text != "" && comboBoxStartFormatInterval3.Text != "") &&
+                            (comboBoxStopHourInterval3.Text != "" && comboBoxStopMinuteInterval3.Text != "" && comboBoxStopFormatInterval3.Text != "") &&
+                            (checkBoxEntranceTone3.Checked == false || checkBoxEntranceTone3.Checked == true) &&
+                            (checkBoxExitTone3.Checked == false || checkBoxExitTone3.Checked == true) &&
+                            (checkBoxHoldMusic3.Checked == false || checkBoxHoldMusic3.Checked == true) &&
+                            (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
+                            (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
                         {
-                            Id = 23,
-                            Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
-                            Stop = comboBoxStopHourInterval3.Text + ":" + comboBoxStopMinuteInterval3.Text + ":" + "00" + " " + comboBoxStopFormatInterval3.Text,
-                            EntranceTone = checkBoxEntranceTone3.Checked,
-                            ExitTone = checkBoxExitTone3.Checked,
-                            HoldMusic = checkBoxHoldMusic3.Checked,
-                            HoldOn = checkBoxHoldOn3.Checked,
-                            HoldCourse = checkBoxHoldCourse3.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 13,
+                                Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
+                                Stop = comboBoxStopHourInterval3.Text + ":" + comboBoxStopMinuteInterval3.Text + ":" + "00" + " " + comboBoxStopFormatInterval3.Text,
+                                EntranceTone = checkBoxEntranceTone3.Checked,
+                                ExitTone = checkBoxExitTone3.Checked,
+                                HoldMusic = checkBoxHoldMusic3.Checked,
+                                HoldOn = checkBoxHoldOn3.Checked,
+                                HoldCourse = checkBoxHoldCourse3.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval4.Text != "" && comboBoxStartMinuteInterval4.Text != "" && comboBoxStartFormatInterval4.Text != "") &&
-                        (comboBoxStopHourInterval4.Text != "" && comboBoxStopMinuteInterval4.Text != "" && comboBoxStopFormatInterval4.Text != "") &&
-                        (checkBoxEntranceTone4.Checked == false || checkBoxEntranceTone4.Checked == true) &&
-                        (checkBoxExitTone4.Checked == false || checkBoxExitTone4.Checked == true) &&
-                        (checkBoxHoldMusic4.Checked == false || checkBoxHoldMusic4.Checked == true) &&
-                        (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
-                        (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval4.Text != "" && comboBoxStartMinuteInterval4.Text != "" && comboBoxStartFormatInterval4.Text != "") &&
+                            (comboBoxStopHourInterval4.Text != "" && comboBoxStopMinuteInterval4.Text != "" && comboBoxStopFormatInterval4.Text != "") &&
+                            (checkBoxEntranceTone4.Checked == false || checkBoxEntranceTone4.Checked == true) &&
+                            (checkBoxExitTone4.Checked == false || checkBoxExitTone4.Checked == true) &&
+                            (checkBoxHoldMusic4.Checked == false || checkBoxHoldMusic4.Checked == true) &&
+                            (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
+                            (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
                         {
-                            Id = 24,
-                            Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
-                            Stop = comboBoxStopHourInterval4.Text + ":" + comboBoxStopMinuteInterval4.Text + ":" + "00" + " " + comboBoxStopFormatInterval4.Text,
-                            EntranceTone = checkBoxEntranceTone4.Checked,
-                            ExitTone = checkBoxExitTone4.Checked,
-                            HoldMusic = checkBoxHoldMusic4.Checked,
-                            HoldOn = checkBoxHoldOn4.Checked,
-                            HoldCourse = checkBoxHoldCourse4.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 14,
+                                Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
+                                Stop = comboBoxStopHourInterval4.Text + ":" + comboBoxStopMinuteInterval4.Text + ":" + "00" + " " + comboBoxStopFormatInterval4.Text,
+                                EntranceTone = checkBoxEntranceTone4.Checked,
+                                ExitTone = checkBoxExitTone4.Checked,
+                                HoldMusic = checkBoxHoldMusic4.Checked,
+                                HoldOn = checkBoxHoldOn4.Checked,
+                                HoldCourse = checkBoxHoldCourse4.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval5.Text != "" && comboBoxStartMinuteInterval5.Text != "" && comboBoxStartFormatInterval5.Text != "") &&
-                        (comboBoxStopHourInterval5.Text != "" && comboBoxStopMinuteInterval5.Text != "" && comboBoxStopFormatInterval5.Text != "") &&
-                        (checkBoxEntranceTone5.Checked == false || checkBoxEntranceTone5.Checked == true) &&
-                        (checkBoxExitTone5.Checked == false || checkBoxExitTone5.Checked == true) &&
-                        (checkBoxHoldMusic5.Checked == false || checkBoxHoldMusic5.Checked == true) &&
-                        (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
-                        (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval5.Text != "" && comboBoxStartMinuteInterval5.Text != "" && comboBoxStartFormatInterval5.Text != "") &&
+                            (comboBoxStopHourInterval5.Text != "" && comboBoxStopMinuteInterval5.Text != "" && comboBoxStopFormatInterval5.Text != "") &&
+                            (checkBoxEntranceTone5.Checked == false || checkBoxEntranceTone5.Checked == true) &&
+                            (checkBoxExitTone5.Checked == false || checkBoxExitTone5.Checked == true) &&
+                            (checkBoxHoldMusic5.Checked == false || checkBoxHoldMusic5.Checked == true) &&
+                            (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
+                            (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
                         {
-                            Id = 25,
-                            Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
-                            Stop = comboBoxStopHourInterval5.Text + ":" + comboBoxStopMinuteInterval5.Text + ":" + "00" + " " + comboBoxStopFormatInterval5.Text,
-                            EntranceTone = checkBoxEntranceTone5.Checked,
-                            ExitTone = checkBoxExitTone5.Checked,
-                            HoldMusic = checkBoxHoldMusic5.Checked,
-                            HoldOn = checkBoxHoldOn5.Checked,
-                            HoldCourse = checkBoxHoldCourse5.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 15,
+                                Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
+                                Stop = comboBoxStopHourInterval5.Text + ":" + comboBoxStopMinuteInterval5.Text + ":" + "00" + " " + comboBoxStopFormatInterval5.Text,
+                                EntranceTone = checkBoxEntranceTone5.Checked,
+                                ExitTone = checkBoxExitTone5.Checked,
+                                HoldMusic = checkBoxHoldMusic5.Checked,
+                                HoldOn = checkBoxHoldOn5.Checked,
+                                HoldCourse = checkBoxHoldCourse5.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval6.Text != "" && comboBoxStartMinuteInterval6.Text != "" && comboBoxStartFormatInterval6.Text != "") &&
-                        (comboBoxStopHourInterval6.Text != "" && comboBoxStopMinuteInterval6.Text != "" && comboBoxStopFormatInterval6.Text != "") &&
-                        (checkBoxEntranceTone6.Checked == false || checkBoxEntranceTone6.Checked == true) &&
-                        (checkBoxExitTone6.Checked == false || checkBoxExitTone6.Checked == true) &&
-                        (checkBoxHoldMusic6.Checked == false || checkBoxHoldMusic6.Checked == true) &&
-                        (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
-                        (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval6.Text != "" && comboBoxStartMinuteInterval6.Text != "" && comboBoxStartFormatInterval6.Text != "") &&
+                            (comboBoxStopHourInterval6.Text != "" && comboBoxStopMinuteInterval6.Text != "" && comboBoxStopFormatInterval6.Text != "") &&
+                            (checkBoxEntranceTone6.Checked == false || checkBoxEntranceTone6.Checked == true) &&
+                            (checkBoxExitTone6.Checked == false || checkBoxExitTone6.Checked == true) &&
+                            (checkBoxHoldMusic6.Checked == false || checkBoxHoldMusic6.Checked == true) &&
+                            (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
+                            (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
                         {
-                            Id = 26,
-                            Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
-                            Stop = comboBoxStopHourInterval6.Text + ":" + comboBoxStopMinuteInterval6.Text + ":" + "00" + " " + comboBoxStopFormatInterval6.Text,
-                            EntranceTone = checkBoxEntranceTone6.Checked,
-                            ExitTone = checkBoxExitTone6.Checked,
-                            HoldMusic = checkBoxHoldMusic6.Checked,
-                            HoldOn = checkBoxHoldOn6.Checked,
-                            HoldCourse = checkBoxHoldCourse6.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 16,
+                                Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
+                                Stop = comboBoxStopHourInterval6.Text + ":" + comboBoxStopMinuteInterval6.Text + ":" + "00" + " " + comboBoxStopFormatInterval6.Text,
+                                EntranceTone = checkBoxEntranceTone6.Checked,
+                                ExitTone = checkBoxExitTone6.Checked,
+                                HoldMusic = checkBoxHoldMusic6.Checked,
+                                HoldOn = checkBoxHoldOn6.Checked,
+                                HoldCourse = checkBoxHoldCourse6.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval7.Text != "" && comboBoxStartMinuteInterval7.Text != "" && comboBoxStartFormatInterval7.Text != "") &&
-                        (comboBoxStopHourInterval7.Text != "" && comboBoxStopMinuteInterval7.Text != "" && comboBoxStopFormatInterval7.Text != "") &&
-                        (checkBoxEntranceTone7.Checked == false || checkBoxEntranceTone7.Checked == true) &&
-                        (checkBoxExitTone7.Checked == false || checkBoxExitTone7.Checked == true) &&
-                        (checkBoxHoldMusic7.Checked == false || checkBoxHoldMusic7.Checked == true) &&
-                        (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
-                        (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval7.Text != "" && comboBoxStartMinuteInterval7.Text != "" && comboBoxStartFormatInterval7.Text != "") &&
+                            (comboBoxStopHourInterval7.Text != "" && comboBoxStopMinuteInterval7.Text != "" && comboBoxStopFormatInterval7.Text != "") &&
+                            (checkBoxEntranceTone7.Checked == false || checkBoxEntranceTone7.Checked == true) &&
+                            (checkBoxExitTone7.Checked == false || checkBoxExitTone7.Checked == true) &&
+                            (checkBoxHoldMusic7.Checked == false || checkBoxHoldMusic7.Checked == true) &&
+                            (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
+                            (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
                         {
-                            Id = 27,
-                            Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
-                            Stop = comboBoxStopHourInterval7.Text + ":" + comboBoxStopMinuteInterval7.Text + ":" + "00" + " " + comboBoxStopFormatInterval7.Text,
-                            EntranceTone = checkBoxEntranceTone7.Checked,
-                            ExitTone = checkBoxExitTone7.Checked,
-                            HoldMusic = checkBoxHoldMusic7.Checked,
-                            HoldOn = checkBoxHoldOn7.Checked,
-                            HoldCourse = checkBoxHoldCourse7.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 17,
+                                Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
+                                Stop = comboBoxStopHourInterval7.Text + ":" + comboBoxStopMinuteInterval7.Text + ":" + "00" + " " + comboBoxStopFormatInterval7.Text,
+                                EntranceTone = checkBoxEntranceTone7.Checked,
+                                ExitTone = checkBoxExitTone7.Checked,
+                                HoldMusic = checkBoxHoldMusic7.Checked,
+                                HoldOn = checkBoxHoldOn7.Checked,
+                                HoldCourse = checkBoxHoldCourse7.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval8.Text != "" && comboBoxStartMinuteInterval8.Text != "" && comboBoxStartFormatInterval8.Text != "") &&
-                        (comboBoxStopHourInterval8.Text != "" && comboBoxStopMinuteInterval8.Text != "" && comboBoxStopFormatInterval8.Text != "") &&
-                        (checkBoxEntranceTone8.Checked == false || checkBoxEntranceTone8.Checked == true) &&
-                        (checkBoxExitTone8.Checked == false || checkBoxExitTone8.Checked == true) &&
-                        (checkBoxHoldMusic8.Checked == false || checkBoxHoldMusic8.Checked == true) &&
-                        (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
-                        (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval8.Text != "" && comboBoxStartMinuteInterval8.Text != "" && comboBoxStartFormatInterval8.Text != "") &&
+                            (comboBoxStopHourInterval8.Text != "" && comboBoxStopMinuteInterval8.Text != "" && comboBoxStopFormatInterval8.Text != "") &&
+                            (checkBoxEntranceTone8.Checked == false || checkBoxEntranceTone8.Checked == true) &&
+                            (checkBoxExitTone8.Checked == false || checkBoxExitTone8.Checked == true) &&
+                            (checkBoxHoldMusic8.Checked == false || checkBoxHoldMusic8.Checked == true) &&
+                            (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
+                            (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
                         {
-                            Id = 28,
-                            Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
-                            Stop = comboBoxStopHourInterval8.Text + ":" + comboBoxStopMinuteInterval8.Text + ":" + "00" + " " + comboBoxStopFormatInterval8.Text,
-                            EntranceTone = checkBoxEntranceTone8.Checked,
-                            ExitTone = checkBoxExitTone8.Checked,
-                            HoldMusic = checkBoxHoldMusic8.Checked,
-                            HoldOn = checkBoxHoldOn8.Checked,
-                            HoldCourse = checkBoxHoldCourse8.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 18,
+                                Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
+                                Stop = comboBoxStopHourInterval8.Text + ":" + comboBoxStopMinuteInterval8.Text + ":" + "00" + " " + comboBoxStopFormatInterval8.Text,
+                                EntranceTone = checkBoxEntranceTone8.Checked,
+                                ExitTone = checkBoxExitTone8.Checked,
+                                HoldMusic = checkBoxHoldMusic8.Checked,
+                                HoldOn = checkBoxHoldOn8.Checked,
+                                HoldCourse = checkBoxHoldCourse8.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval9.Text != "" && comboBoxStartMinuteInterval9.Text != "" && comboBoxStartFormatInterval9.Text != "") &&
-                        (comboBoxStopHourInterval9.Text != "" && comboBoxStopMinuteInterval9.Text != "" && comboBoxStopFormatInterval9.Text != "") &&
-                        (checkBoxEntranceTone9.Checked == false || checkBoxEntranceTone9.Checked == true) &&
-                        (checkBoxExitTone9.Checked == false || checkBoxExitTone9.Checked == true) &&
-                        (checkBoxHoldMusic9.Checked == false || checkBoxHoldMusic9.Checked == true) &&
-                        (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
-                        (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval9.Text != "" && comboBoxStartMinuteInterval9.Text != "" && comboBoxStartFormatInterval9.Text != "") &&
+                            (comboBoxStopHourInterval9.Text != "" && comboBoxStopMinuteInterval9.Text != "" && comboBoxStopFormatInterval9.Text != "") &&
+                            (checkBoxEntranceTone9.Checked == false || checkBoxEntranceTone9.Checked == true) &&
+                            (checkBoxExitTone9.Checked == false || checkBoxExitTone9.Checked == true) &&
+                            (checkBoxHoldMusic9.Checked == false || checkBoxHoldMusic9.Checked == true) &&
+                            (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
+                            (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
                         {
-                            Id = 29,
-                            Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
-                            Stop = comboBoxStopHourInterval9.Text + ":" + comboBoxStopMinuteInterval9.Text + ":" + "00" + " " + comboBoxStopFormatInterval9.Text,
-                            EntranceTone = checkBoxEntranceTone9.Checked,
-                            ExitTone = checkBoxExitTone9.Checked,
-                            HoldMusic = checkBoxHoldMusic9.Checked,
-                            HoldOn = checkBoxHoldOn9.Checked,
-                            HoldCourse = checkBoxHoldCourse9.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 19,
+                                Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
+                                Stop = comboBoxStopHourInterval9.Text + ":" + comboBoxStopMinuteInterval9.Text + ":" + "00" + " " + comboBoxStopFormatInterval9.Text,
+                                EntranceTone = checkBoxEntranceTone9.Checked,
+                                ExitTone = checkBoxExitTone9.Checked,
+                                HoldMusic = checkBoxHoldMusic9.Checked,
+                                HoldOn = checkBoxHoldOn9.Checked,
+                                HoldCourse = checkBoxHoldCourse9.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval10.Text != "" && comboBoxStartMinuteInterval10.Text != "" && comboBoxStartFormatInterval10.Text != "") &&
-                        (comboBoxStopHourInterval10.Text != "" && comboBoxStopMinuteInterval10.Text != "" && comboBoxStopFormatInterval10.Text != "") &&
-                        (checkBoxEntranceTone10.Checked == false || checkBoxEntranceTone10.Checked == true) &&
-                        (checkBoxExitTone10.Checked == false || checkBoxExitTone10.Checked == true) &&
-                        (checkBoxHoldMusic10.Checked == false || checkBoxHoldMusic10.Checked == true) &&
-                        (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
-                        (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval10.Text != "" && comboBoxStartMinuteInterval10.Text != "" && comboBoxStartFormatInterval10.Text != "") &&
+                            (comboBoxStopHourInterval10.Text != "" && comboBoxStopMinuteInterval10.Text != "" && comboBoxStopFormatInterval10.Text != "") &&
+                            (checkBoxEntranceTone10.Checked == false || checkBoxEntranceTone10.Checked == true) &&
+                            (checkBoxExitTone10.Checked == false || checkBoxExitTone10.Checked == true) &&
+                            (checkBoxHoldMusic10.Checked == false || checkBoxHoldMusic10.Checked == true) &&
+                            (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
+                            (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
                         {
-                            Id = 30,
-                            Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
-                            Stop = comboBoxStopHourInterval10.Text + ":" + comboBoxStopMinuteInterval10.Text + ":" + "00" + " " + comboBoxStopFormatInterval10.Text,
-                            EntranceTone = checkBoxEntranceTone10.Checked,
-                            ExitTone = checkBoxExitTone10.Checked,
-                            HoldMusic = checkBoxHoldMusic10.Checked,
-                            HoldOn = checkBoxHoldOn10.Checked,
-                            HoldCourse = checkBoxHoldCourse10.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 20,
+                                Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
+                                Stop = comboBoxStopHourInterval10.Text + ":" + comboBoxStopMinuteInterval10.Text + ":" + "00" + " " + comboBoxStopFormatInterval10.Text,
+                                EntranceTone = checkBoxEntranceTone10.Checked,
+                                ExitTone = checkBoxExitTone10.Checked,
+                                HoldMusic = checkBoxHoldMusic10.Checked,
+                                HoldOn = checkBoxHoldOn10.Checked,
+                                HoldCourse = checkBoxHoldCourse10.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    break;
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        break;
 
-                case "Joi":
-                    if ((comboBoxStartHourInterval1.Text != "" && comboBoxStartMinuteInterval1.Text != "" && comboBoxStartFormatInterval1.Text != "") &&
-                    (comboBoxStopHourInterval1.Text != "" && comboBoxStopMinuteInterval1.Text != "" && comboBoxStopFormatInterval1.Text != "") &&
-                    (checkBoxExitTone1.Checked == false || checkBoxExitTone1.Checked == true) &&
-                    (checkBoxEntranceTone1.Checked == false || checkBoxEntranceTone1.Checked == true) &&
-                    (checkBoxHoldMusic1.Checked == false || checkBoxHoldMusic1.Checked == true) &&
-                    (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
-                    (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                    case "Miercuri":
+                        if ((comboBoxStartHourInterval1.Text != "" && comboBoxStartMinuteInterval1.Text != "" && comboBoxStartFormatInterval1.Text != "") &&
+                        (comboBoxStopHourInterval1.Text != "" && comboBoxStopMinuteInterval1.Text != "" && comboBoxStopFormatInterval1.Text != "") &&
+                        (checkBoxExitTone1.Checked == false || checkBoxExitTone1.Checked == true) &&
+                        (checkBoxEntranceTone1.Checked == false || checkBoxEntranceTone1.Checked == true) &&
+                        (checkBoxHoldMusic1.Checked == false || checkBoxHoldMusic1.Checked == true) &&
+                        (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
+                        (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
                         {
-                            Id = 31,
-                            Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
-                            Stop = comboBoxStopHourInterval1.Text + ":" + comboBoxStopMinuteInterval1.Text + ":" + "00" + " " + comboBoxStopFormatInterval1.Text,
-                            EntranceTone = checkBoxEntranceTone1.Checked,
-                            ExitTone = checkBoxExitTone1.Checked,
-                            HoldMusic = checkBoxHoldMusic1.Checked,
-                            HoldOn = checkBoxHoldOn1.Checked,
-                            HoldCourse = checkBoxHoldCourse1.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 21,
+                                Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
+                                Stop = comboBoxStopHourInterval1.Text + ":" + comboBoxStopMinuteInterval1.Text + ":" + "00" + " " + comboBoxStopFormatInterval1.Text,
+                                EntranceTone = checkBoxEntranceTone1.Checked,
+                                ExitTone = checkBoxExitTone1.Checked,
+                                HoldMusic = checkBoxHoldMusic1.Checked,
+                                HoldOn = checkBoxHoldOn1.Checked,
+                                HoldCourse = checkBoxHoldCourse1.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval2.Text != "" && comboBoxStartMinuteInterval2.Text != "" && comboBoxStartFormatInterval2.Text != "") &&
-                        (comboBoxStopHourInterval2.Text != "" && comboBoxStopMinuteInterval2.Text != "" && comboBoxStopFormatInterval2.Text != "") &&
-                        (checkBoxEntranceTone2.Checked == false || checkBoxEntranceTone2.Checked == true) &&
-                        (checkBoxExitTone2.Checked == false || checkBoxExitTone2.Checked == true) &&
-                        (checkBoxHoldMusic2.Checked == false || checkBoxHoldMusic2.Checked == true) &&
-                        (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
-                        (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval2.Text != "" && comboBoxStartMinuteInterval2.Text != "" && comboBoxStartFormatInterval2.Text != "") &&
+                            (comboBoxStopHourInterval2.Text != "" && comboBoxStopMinuteInterval2.Text != "" && comboBoxStopFormatInterval2.Text != "") &&
+                            (checkBoxEntranceTone2.Checked == false || checkBoxEntranceTone2.Checked == true) &&
+                            (checkBoxExitTone2.Checked == false || checkBoxExitTone2.Checked == true) &&
+                            (checkBoxHoldMusic2.Checked == false || checkBoxHoldMusic2.Checked == true) &&
+                            (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
+                            (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
                         {
-                            Id = 32,
-                            Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
-                            Stop = comboBoxStopHourInterval2.Text + ":" + comboBoxStopMinuteInterval2.Text + ":" + "00" + " " + comboBoxStopFormatInterval2.Text,
-                            EntranceTone = checkBoxEntranceTone2.Checked,
-                            ExitTone = checkBoxExitTone2.Checked,
-                            HoldMusic = checkBoxHoldMusic2.Checked,
-                            HoldOn = checkBoxHoldOn2.Checked,
-                            HoldCourse = checkBoxHoldCourse2.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 22,
+                                Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
+                                Stop = comboBoxStopHourInterval2.Text + ":" + comboBoxStopMinuteInterval2.Text + ":" + "00" + " " + comboBoxStopFormatInterval2.Text,
+                                EntranceTone = checkBoxEntranceTone2.Checked,
+                                ExitTone = checkBoxExitTone2.Checked,
+                                HoldMusic = checkBoxHoldMusic2.Checked,
+                                HoldOn = checkBoxHoldOn2.Checked,
+                                HoldCourse = checkBoxHoldCourse2.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval3.Text != "" && comboBoxStartMinuteInterval3.Text != "" && comboBoxStartFormatInterval3.Text != "") &&
-                        (comboBoxStopHourInterval3.Text != "" && comboBoxStopMinuteInterval3.Text != "" && comboBoxStopFormatInterval3.Text != "") &&
-                        (checkBoxEntranceTone3.Checked == false || checkBoxEntranceTone3.Checked == true) &&
-                        (checkBoxExitTone3.Checked == false || checkBoxExitTone3.Checked == true) &&
-                        (checkBoxHoldMusic3.Checked == false || checkBoxHoldMusic3.Checked == true) &&
-                        (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
-                        (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval3.Text != "" && comboBoxStartMinuteInterval3.Text != "" && comboBoxStartFormatInterval3.Text != "") &&
+                            (comboBoxStopHourInterval3.Text != "" && comboBoxStopMinuteInterval3.Text != "" && comboBoxStopFormatInterval3.Text != "") &&
+                            (checkBoxEntranceTone3.Checked == false || checkBoxEntranceTone3.Checked == true) &&
+                            (checkBoxExitTone3.Checked == false || checkBoxExitTone3.Checked == true) &&
+                            (checkBoxHoldMusic3.Checked == false || checkBoxHoldMusic3.Checked == true) &&
+                            (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
+                            (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
                         {
-                            Id = 33,
-                            Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
-                            Stop = comboBoxStopHourInterval3.Text + ":" + comboBoxStopMinuteInterval3.Text + ":" + "00" + " " + comboBoxStopFormatInterval3.Text,
-                            EntranceTone = checkBoxEntranceTone3.Checked,
-                            ExitTone = checkBoxExitTone3.Checked,
-                            HoldMusic = checkBoxHoldMusic3.Checked,
-                            HoldOn = checkBoxHoldOn3.Checked,
-                            HoldCourse = checkBoxHoldCourse3.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 23,
+                                Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
+                                Stop = comboBoxStopHourInterval3.Text + ":" + comboBoxStopMinuteInterval3.Text + ":" + "00" + " " + comboBoxStopFormatInterval3.Text,
+                                EntranceTone = checkBoxEntranceTone3.Checked,
+                                ExitTone = checkBoxExitTone3.Checked,
+                                HoldMusic = checkBoxHoldMusic3.Checked,
+                                HoldOn = checkBoxHoldOn3.Checked,
+                                HoldCourse = checkBoxHoldCourse3.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval4.Text != "" && comboBoxStartMinuteInterval4.Text != "" && comboBoxStartFormatInterval4.Text != "") &&
-                        (comboBoxStopHourInterval4.Text != "" && comboBoxStopMinuteInterval4.Text != "" && comboBoxStopFormatInterval4.Text != "") &&
-                        (checkBoxEntranceTone4.Checked == false || checkBoxEntranceTone4.Checked == true) &&
-                        (checkBoxExitTone4.Checked == false || checkBoxExitTone4.Checked == true) &&
-                        (checkBoxHoldMusic4.Checked == false || checkBoxHoldMusic4.Checked == true) &&
-                        (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
-                        (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval4.Text != "" && comboBoxStartMinuteInterval4.Text != "" && comboBoxStartFormatInterval4.Text != "") &&
+                            (comboBoxStopHourInterval4.Text != "" && comboBoxStopMinuteInterval4.Text != "" && comboBoxStopFormatInterval4.Text != "") &&
+                            (checkBoxEntranceTone4.Checked == false || checkBoxEntranceTone4.Checked == true) &&
+                            (checkBoxExitTone4.Checked == false || checkBoxExitTone4.Checked == true) &&
+                            (checkBoxHoldMusic4.Checked == false || checkBoxHoldMusic4.Checked == true) &&
+                            (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
+                            (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
                         {
-                            Id = 34,
-                            Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
-                            Stop = comboBoxStopHourInterval4.Text + ":" + comboBoxStopMinuteInterval4.Text + ":" + "00" + " " + comboBoxStopFormatInterval4.Text,
-                            EntranceTone = checkBoxEntranceTone4.Checked,
-                            ExitTone = checkBoxExitTone4.Checked,
-                            HoldMusic = checkBoxHoldMusic4.Checked,
-                            HoldOn = checkBoxHoldOn4.Checked,
-                            HoldCourse = checkBoxHoldCourse4.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 24,
+                                Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
+                                Stop = comboBoxStopHourInterval4.Text + ":" + comboBoxStopMinuteInterval4.Text + ":" + "00" + " " + comboBoxStopFormatInterval4.Text,
+                                EntranceTone = checkBoxEntranceTone4.Checked,
+                                ExitTone = checkBoxExitTone4.Checked,
+                                HoldMusic = checkBoxHoldMusic4.Checked,
+                                HoldOn = checkBoxHoldOn4.Checked,
+                                HoldCourse = checkBoxHoldCourse4.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval5.Text != "" && comboBoxStartMinuteInterval5.Text != "" && comboBoxStartFormatInterval5.Text != "") &&
-                        (comboBoxStopHourInterval5.Text != "" && comboBoxStopMinuteInterval5.Text != "" && comboBoxStopFormatInterval5.Text != "") &&
-                        (checkBoxEntranceTone5.Checked == false || checkBoxEntranceTone5.Checked == true) &&
-                        (checkBoxExitTone5.Checked == false || checkBoxExitTone5.Checked == true) &&
-                        (checkBoxHoldMusic5.Checked == false || checkBoxHoldMusic5.Checked == true) &&
-                        (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
-                        (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval5.Text != "" && comboBoxStartMinuteInterval5.Text != "" && comboBoxStartFormatInterval5.Text != "") &&
+                            (comboBoxStopHourInterval5.Text != "" && comboBoxStopMinuteInterval5.Text != "" && comboBoxStopFormatInterval5.Text != "") &&
+                            (checkBoxEntranceTone5.Checked == false || checkBoxEntranceTone5.Checked == true) &&
+                            (checkBoxExitTone5.Checked == false || checkBoxExitTone5.Checked == true) &&
+                            (checkBoxHoldMusic5.Checked == false || checkBoxHoldMusic5.Checked == true) &&
+                            (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
+                            (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
                         {
-                            Id = 35,
-                            Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
-                            Stop = comboBoxStopHourInterval5.Text + ":" + comboBoxStopMinuteInterval5.Text + ":" + "00" + " " + comboBoxStopFormatInterval5.Text,
-                            EntranceTone = checkBoxEntranceTone5.Checked,
-                            ExitTone = checkBoxExitTone5.Checked,
-                            HoldMusic = checkBoxHoldMusic5.Checked,
-                            HoldOn = checkBoxHoldOn5.Checked,
-                            HoldCourse = checkBoxHoldCourse5.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 25,
+                                Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
+                                Stop = comboBoxStopHourInterval5.Text + ":" + comboBoxStopMinuteInterval5.Text + ":" + "00" + " " + comboBoxStopFormatInterval5.Text,
+                                EntranceTone = checkBoxEntranceTone5.Checked,
+                                ExitTone = checkBoxExitTone5.Checked,
+                                HoldMusic = checkBoxHoldMusic5.Checked,
+                                HoldOn = checkBoxHoldOn5.Checked,
+                                HoldCourse = checkBoxHoldCourse5.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval6.Text != "" && comboBoxStartMinuteInterval6.Text != "" && comboBoxStartFormatInterval6.Text != "") &&
-                        (comboBoxStopHourInterval6.Text != "" && comboBoxStopMinuteInterval6.Text != "" && comboBoxStopFormatInterval6.Text != "") &&
-                        (checkBoxEntranceTone6.Checked == false || checkBoxEntranceTone6.Checked == true) &&
-                        (checkBoxExitTone6.Checked == false || checkBoxExitTone6.Checked == true) &&
-                        (checkBoxHoldMusic6.Checked == false || checkBoxHoldMusic6.Checked == true) &&
-                        (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
-                        (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval6.Text != "" && comboBoxStartMinuteInterval6.Text != "" && comboBoxStartFormatInterval6.Text != "") &&
+                            (comboBoxStopHourInterval6.Text != "" && comboBoxStopMinuteInterval6.Text != "" && comboBoxStopFormatInterval6.Text != "") &&
+                            (checkBoxEntranceTone6.Checked == false || checkBoxEntranceTone6.Checked == true) &&
+                            (checkBoxExitTone6.Checked == false || checkBoxExitTone6.Checked == true) &&
+                            (checkBoxHoldMusic6.Checked == false || checkBoxHoldMusic6.Checked == true) &&
+                            (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
+                            (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
                         {
-                            Id = 36,
-                            Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
-                            Stop = comboBoxStopHourInterval6.Text + ":" + comboBoxStopMinuteInterval6.Text + ":" + "00" + " " + comboBoxStopFormatInterval6.Text,
-                            EntranceTone = checkBoxEntranceTone6.Checked,
-                            ExitTone = checkBoxExitTone6.Checked,
-                            HoldMusic = checkBoxHoldMusic6.Checked,
-                            HoldOn = checkBoxHoldOn6.Checked,
-                            HoldCourse = checkBoxHoldCourse6.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 26,
+                                Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
+                                Stop = comboBoxStopHourInterval6.Text + ":" + comboBoxStopMinuteInterval6.Text + ":" + "00" + " " + comboBoxStopFormatInterval6.Text,
+                                EntranceTone = checkBoxEntranceTone6.Checked,
+                                ExitTone = checkBoxExitTone6.Checked,
+                                HoldMusic = checkBoxHoldMusic6.Checked,
+                                HoldOn = checkBoxHoldOn6.Checked,
+                                HoldCourse = checkBoxHoldCourse6.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval7.Text != "" && comboBoxStartMinuteInterval7.Text != "" && comboBoxStartFormatInterval7.Text != "") &&
-                        (comboBoxStopHourInterval7.Text != "" && comboBoxStopMinuteInterval7.Text != "" && comboBoxStopFormatInterval7.Text != "") &&
-                        (checkBoxEntranceTone7.Checked == false || checkBoxEntranceTone7.Checked == true) &&
-                        (checkBoxExitTone7.Checked == false || checkBoxExitTone7.Checked == true) &&
-                        (checkBoxHoldMusic7.Checked == false || checkBoxHoldMusic7.Checked == true) &&
-                        (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
-                        (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval7.Text != "" && comboBoxStartMinuteInterval7.Text != "" && comboBoxStartFormatInterval7.Text != "") &&
+                            (comboBoxStopHourInterval7.Text != "" && comboBoxStopMinuteInterval7.Text != "" && comboBoxStopFormatInterval7.Text != "") &&
+                            (checkBoxEntranceTone7.Checked == false || checkBoxEntranceTone7.Checked == true) &&
+                            (checkBoxExitTone7.Checked == false || checkBoxExitTone7.Checked == true) &&
+                            (checkBoxHoldMusic7.Checked == false || checkBoxHoldMusic7.Checked == true) &&
+                            (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
+                            (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
                         {
-                            Id = 37,
-                            Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
-                            Stop = comboBoxStopHourInterval7.Text + ":" + comboBoxStopMinuteInterval7.Text + ":" + "00" + " " + comboBoxStopFormatInterval7.Text,
-                            EntranceTone = checkBoxEntranceTone7.Checked,
-                            ExitTone = checkBoxExitTone7.Checked,
-                            HoldMusic = checkBoxHoldMusic7.Checked,
-                            HoldOn = checkBoxHoldOn7.Checked,
-                            HoldCourse = checkBoxHoldCourse7.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 27,
+                                Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
+                                Stop = comboBoxStopHourInterval7.Text + ":" + comboBoxStopMinuteInterval7.Text + ":" + "00" + " " + comboBoxStopFormatInterval7.Text,
+                                EntranceTone = checkBoxEntranceTone7.Checked,
+                                ExitTone = checkBoxExitTone7.Checked,
+                                HoldMusic = checkBoxHoldMusic7.Checked,
+                                HoldOn = checkBoxHoldOn7.Checked,
+                                HoldCourse = checkBoxHoldCourse7.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval8.Text != "" && comboBoxStartMinuteInterval8.Text != "" && comboBoxStartFormatInterval8.Text != "") &&
-                        (comboBoxStopHourInterval8.Text != "" && comboBoxStopMinuteInterval8.Text != "" && comboBoxStopFormatInterval8.Text != "") &&
-                        (checkBoxEntranceTone8.Checked == false || checkBoxEntranceTone8.Checked == true) &&
-                        (checkBoxExitTone8.Checked == false || checkBoxExitTone8.Checked == true) &&
-                        (checkBoxHoldMusic8.Checked == false || checkBoxHoldMusic8.Checked == true) &&
-                        (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
-                        (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval8.Text != "" && comboBoxStartMinuteInterval8.Text != "" && comboBoxStartFormatInterval8.Text != "") &&
+                            (comboBoxStopHourInterval8.Text != "" && comboBoxStopMinuteInterval8.Text != "" && comboBoxStopFormatInterval8.Text != "") &&
+                            (checkBoxEntranceTone8.Checked == false || checkBoxEntranceTone8.Checked == true) &&
+                            (checkBoxExitTone8.Checked == false || checkBoxExitTone8.Checked == true) &&
+                            (checkBoxHoldMusic8.Checked == false || checkBoxHoldMusic8.Checked == true) &&
+                            (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
+                            (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
                         {
-                            Id = 38,
-                            Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
-                            Stop = comboBoxStopHourInterval8.Text + ":" + comboBoxStopMinuteInterval8.Text + ":" + "00" + " " + comboBoxStopFormatInterval8.Text,
-                            EntranceTone = checkBoxEntranceTone8.Checked,
-                            ExitTone = checkBoxExitTone8.Checked,
-                            HoldMusic = checkBoxHoldMusic8.Checked,
-                            HoldOn = checkBoxHoldOn8.Checked,
-                            HoldCourse = checkBoxHoldCourse8.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 28,
+                                Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
+                                Stop = comboBoxStopHourInterval8.Text + ":" + comboBoxStopMinuteInterval8.Text + ":" + "00" + " " + comboBoxStopFormatInterval8.Text,
+                                EntranceTone = checkBoxEntranceTone8.Checked,
+                                ExitTone = checkBoxExitTone8.Checked,
+                                HoldMusic = checkBoxHoldMusic8.Checked,
+                                HoldOn = checkBoxHoldOn8.Checked,
+                                HoldCourse = checkBoxHoldCourse8.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval9.Text != "" && comboBoxStartMinuteInterval9.Text != "" && comboBoxStartFormatInterval9.Text != "") &&
-                        (comboBoxStopHourInterval9.Text != "" && comboBoxStopMinuteInterval9.Text != "" && comboBoxStopFormatInterval9.Text != "") &&
-                        (checkBoxEntranceTone9.Checked == false || checkBoxEntranceTone9.Checked == true) &&
-                        (checkBoxExitTone9.Checked == false || checkBoxExitTone9.Checked == true) &&
-                        (checkBoxHoldMusic9.Checked == false || checkBoxHoldMusic9.Checked == true) &&
-                        (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
-                        (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval9.Text != "" && comboBoxStartMinuteInterval9.Text != "" && comboBoxStartFormatInterval9.Text != "") &&
+                            (comboBoxStopHourInterval9.Text != "" && comboBoxStopMinuteInterval9.Text != "" && comboBoxStopFormatInterval9.Text != "") &&
+                            (checkBoxEntranceTone9.Checked == false || checkBoxEntranceTone9.Checked == true) &&
+                            (checkBoxExitTone9.Checked == false || checkBoxExitTone9.Checked == true) &&
+                            (checkBoxHoldMusic9.Checked == false || checkBoxHoldMusic9.Checked == true) &&
+                            (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
+                            (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
                         {
-                            Id = 39,
-                            Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
-                            Stop = comboBoxStopHourInterval9.Text + ":" + comboBoxStopMinuteInterval9.Text + ":" + "00" + " " + comboBoxStopFormatInterval9.Text,
-                            EntranceTone = checkBoxEntranceTone9.Checked,
-                            ExitTone = checkBoxExitTone9.Checked,
-                            HoldMusic = checkBoxHoldMusic9.Checked,
-                            HoldOn = checkBoxHoldOn9.Checked,
-                            HoldCourse = checkBoxHoldCourse9.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 29,
+                                Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
+                                Stop = comboBoxStopHourInterval9.Text + ":" + comboBoxStopMinuteInterval9.Text + ":" + "00" + " " + comboBoxStopFormatInterval9.Text,
+                                EntranceTone = checkBoxEntranceTone9.Checked,
+                                ExitTone = checkBoxExitTone9.Checked,
+                                HoldMusic = checkBoxHoldMusic9.Checked,
+                                HoldOn = checkBoxHoldOn9.Checked,
+                                HoldCourse = checkBoxHoldCourse9.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval10.Text != "" && comboBoxStartMinuteInterval10.Text != "" && comboBoxStartFormatInterval10.Text != "") &&
-                        (comboBoxStopHourInterval10.Text != "" && comboBoxStopMinuteInterval10.Text != "" && comboBoxStopFormatInterval10.Text != "") &&
-                        (checkBoxEntranceTone10.Checked == false || checkBoxEntranceTone10.Checked == true) &&
-                        (checkBoxExitTone10.Checked == false || checkBoxExitTone10.Checked == true) &&
-                        (checkBoxHoldMusic10.Checked == false || checkBoxHoldMusic10.Checked == true) &&
-                        (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
-                        (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval10.Text != "" && comboBoxStartMinuteInterval10.Text != "" && comboBoxStartFormatInterval10.Text != "") &&
+                            (comboBoxStopHourInterval10.Text != "" && comboBoxStopMinuteInterval10.Text != "" && comboBoxStopFormatInterval10.Text != "") &&
+                            (checkBoxEntranceTone10.Checked == false || checkBoxEntranceTone10.Checked == true) &&
+                            (checkBoxExitTone10.Checked == false || checkBoxExitTone10.Checked == true) &&
+                            (checkBoxHoldMusic10.Checked == false || checkBoxHoldMusic10.Checked == true) &&
+                            (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
+                            (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
                         {
-                            Id = 40,
-                            Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
-                            Stop = comboBoxStopHourInterval10.Text + ":" + comboBoxStopMinuteInterval10.Text + ":" + "00" + " " + comboBoxStopFormatInterval10.Text,
-                            EntranceTone = checkBoxEntranceTone10.Checked,
-                            ExitTone = checkBoxExitTone10.Checked,
-                            HoldMusic = checkBoxHoldMusic10.Checked,
-                            HoldOn = checkBoxHoldOn10.Checked,
-                            HoldCourse = checkBoxHoldCourse10.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 30,
+                                Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
+                                Stop = comboBoxStopHourInterval10.Text + ":" + comboBoxStopMinuteInterval10.Text + ":" + "00" + " " + comboBoxStopFormatInterval10.Text,
+                                EntranceTone = checkBoxEntranceTone10.Checked,
+                                ExitTone = checkBoxExitTone10.Checked,
+                                HoldMusic = checkBoxHoldMusic10.Checked,
+                                HoldOn = checkBoxHoldOn10.Checked,
+                                HoldCourse = checkBoxHoldCourse10.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    break;
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        break;
 
-                case "Vineri":
-                    if ((comboBoxStartHourInterval1.Text != "" && comboBoxStartMinuteInterval1.Text != "" && comboBoxStartFormatInterval1.Text != "") &&
-                    (comboBoxStopHourInterval1.Text != "" && comboBoxStopMinuteInterval1.Text != "" && comboBoxStopFormatInterval1.Text != "") &&
-                    (checkBoxExitTone1.Checked == false || checkBoxExitTone1.Checked == true) &&
-                    (checkBoxEntranceTone1.Checked == false || checkBoxEntranceTone1.Checked == true) &&
-                    (checkBoxHoldMusic1.Checked == false || checkBoxHoldMusic1.Checked == true) &&
-                    (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
-                    (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                    case "Joi":
+                        if ((comboBoxStartHourInterval1.Text != "" && comboBoxStartMinuteInterval1.Text != "" && comboBoxStartFormatInterval1.Text != "") &&
+                        (comboBoxStopHourInterval1.Text != "" && comboBoxStopMinuteInterval1.Text != "" && comboBoxStopFormatInterval1.Text != "") &&
+                        (checkBoxExitTone1.Checked == false || checkBoxExitTone1.Checked == true) &&
+                        (checkBoxEntranceTone1.Checked == false || checkBoxEntranceTone1.Checked == true) &&
+                        (checkBoxHoldMusic1.Checked == false || checkBoxHoldMusic1.Checked == true) &&
+                        (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
+                        (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
                         {
-                            Id = 41,
-                            Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
-                            Stop = comboBoxStopHourInterval1.Text + ":" + comboBoxStopMinuteInterval1.Text + ":" + "00" + " " + comboBoxStopFormatInterval1.Text,
-                            EntranceTone = checkBoxEntranceTone1.Checked,
-                            ExitTone = checkBoxExitTone1.Checked,
-                            HoldMusic = checkBoxHoldMusic1.Checked,
-                            HoldOn = checkBoxHoldOn1.Checked,
-                            HoldCourse = checkBoxHoldCourse1.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 31,
+                                Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
+                                Stop = comboBoxStopHourInterval1.Text + ":" + comboBoxStopMinuteInterval1.Text + ":" + "00" + " " + comboBoxStopFormatInterval1.Text,
+                                EntranceTone = checkBoxEntranceTone1.Checked,
+                                ExitTone = checkBoxExitTone1.Checked,
+                                HoldMusic = checkBoxHoldMusic1.Checked,
+                                HoldOn = checkBoxHoldOn1.Checked,
+                                HoldCourse = checkBoxHoldCourse1.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval2.Text != "" && comboBoxStartMinuteInterval2.Text != "" && comboBoxStartFormatInterval2.Text != "") &&
-                        (comboBoxStopHourInterval2.Text != "" && comboBoxStopMinuteInterval2.Text != "" && comboBoxStopFormatInterval2.Text != "") &&
-                        (checkBoxEntranceTone2.Checked == false || checkBoxEntranceTone2.Checked == true) &&
-                        (checkBoxExitTone2.Checked == false || checkBoxExitTone2.Checked == true) &&
-                        (checkBoxHoldMusic2.Checked == false || checkBoxHoldMusic2.Checked == true) &&
-                        (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
-                        (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval2.Text != "" && comboBoxStartMinuteInterval2.Text != "" && comboBoxStartFormatInterval2.Text != "") &&
+                            (comboBoxStopHourInterval2.Text != "" && comboBoxStopMinuteInterval2.Text != "" && comboBoxStopFormatInterval2.Text != "") &&
+                            (checkBoxEntranceTone2.Checked == false || checkBoxEntranceTone2.Checked == true) &&
+                            (checkBoxExitTone2.Checked == false || checkBoxExitTone2.Checked == true) &&
+                            (checkBoxHoldMusic2.Checked == false || checkBoxHoldMusic2.Checked == true) &&
+                            (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
+                            (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
                         {
-                            Id = 42,
-                            Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
-                            Stop = comboBoxStopHourInterval2.Text + ":" + comboBoxStopMinuteInterval2.Text + ":" + "00" + " " + comboBoxStopFormatInterval2.Text,
-                            EntranceTone = checkBoxEntranceTone2.Checked,
-                            ExitTone = checkBoxExitTone2.Checked,
-                            HoldMusic = checkBoxHoldMusic2.Checked,
-                            HoldOn = checkBoxHoldOn2.Checked,
-                            HoldCourse = checkBoxHoldCourse2.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 32,
+                                Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
+                                Stop = comboBoxStopHourInterval2.Text + ":" + comboBoxStopMinuteInterval2.Text + ":" + "00" + " " + comboBoxStopFormatInterval2.Text,
+                                EntranceTone = checkBoxEntranceTone2.Checked,
+                                ExitTone = checkBoxExitTone2.Checked,
+                                HoldMusic = checkBoxHoldMusic2.Checked,
+                                HoldOn = checkBoxHoldOn2.Checked,
+                                HoldCourse = checkBoxHoldCourse2.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval3.Text != "" && comboBoxStartMinuteInterval3.Text != "" && comboBoxStartFormatInterval3.Text != "") &&
-                        (comboBoxStopHourInterval3.Text != "" && comboBoxStopMinuteInterval3.Text != "" && comboBoxStopFormatInterval3.Text != "") &&
-                        (checkBoxEntranceTone3.Checked == false || checkBoxEntranceTone3.Checked == true) &&
-                        (checkBoxExitTone3.Checked == false || checkBoxExitTone3.Checked == true) &&
-                        (checkBoxHoldMusic3.Checked == false || checkBoxHoldMusic3.Checked == true) &&
-                        (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
-                        (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval3.Text != "" && comboBoxStartMinuteInterval3.Text != "" && comboBoxStartFormatInterval3.Text != "") &&
+                            (comboBoxStopHourInterval3.Text != "" && comboBoxStopMinuteInterval3.Text != "" && comboBoxStopFormatInterval3.Text != "") &&
+                            (checkBoxEntranceTone3.Checked == false || checkBoxEntranceTone3.Checked == true) &&
+                            (checkBoxExitTone3.Checked == false || checkBoxExitTone3.Checked == true) &&
+                            (checkBoxHoldMusic3.Checked == false || checkBoxHoldMusic3.Checked == true) &&
+                            (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
+                            (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
                         {
-                            Id = 43,
-                            Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
-                            Stop = comboBoxStopHourInterval3.Text + ":" + comboBoxStopMinuteInterval3.Text + ":" + "00" + " " + comboBoxStopFormatInterval3.Text,
-                            EntranceTone = checkBoxEntranceTone3.Checked,
-                            ExitTone = checkBoxExitTone3.Checked,
-                            HoldMusic = checkBoxHoldMusic3.Checked,
-                            HoldOn = checkBoxHoldOn3.Checked,
-                            HoldCourse = checkBoxHoldCourse3.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 33,
+                                Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
+                                Stop = comboBoxStopHourInterval3.Text + ":" + comboBoxStopMinuteInterval3.Text + ":" + "00" + " " + comboBoxStopFormatInterval3.Text,
+                                EntranceTone = checkBoxEntranceTone3.Checked,
+                                ExitTone = checkBoxExitTone3.Checked,
+                                HoldMusic = checkBoxHoldMusic3.Checked,
+                                HoldOn = checkBoxHoldOn3.Checked,
+                                HoldCourse = checkBoxHoldCourse3.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval4.Text != "" && comboBoxStartMinuteInterval4.Text != "" && comboBoxStartFormatInterval4.Text != "") &&
-                        (comboBoxStopHourInterval4.Text != "" && comboBoxStopMinuteInterval4.Text != "" && comboBoxStopFormatInterval4.Text != "") &&
-                        (checkBoxEntranceTone4.Checked == false || checkBoxEntranceTone4.Checked == true) &&
-                        (checkBoxExitTone4.Checked == false || checkBoxExitTone4.Checked == true) &&
-                        (checkBoxHoldMusic4.Checked == false || checkBoxHoldMusic4.Checked == true) &&
-                        (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
-                        (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval4.Text != "" && comboBoxStartMinuteInterval4.Text != "" && comboBoxStartFormatInterval4.Text != "") &&
+                            (comboBoxStopHourInterval4.Text != "" && comboBoxStopMinuteInterval4.Text != "" && comboBoxStopFormatInterval4.Text != "") &&
+                            (checkBoxEntranceTone4.Checked == false || checkBoxEntranceTone4.Checked == true) &&
+                            (checkBoxExitTone4.Checked == false || checkBoxExitTone4.Checked == true) &&
+                            (checkBoxHoldMusic4.Checked == false || checkBoxHoldMusic4.Checked == true) &&
+                            (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
+                            (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
                         {
-                            Id = 44,
-                            Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
-                            Stop = comboBoxStopHourInterval4.Text + ":" + comboBoxStopMinuteInterval4.Text + ":" + "00" + " " + comboBoxStopFormatInterval4.Text,
-                            EntranceTone = checkBoxEntranceTone4.Checked,
-                            ExitTone = checkBoxExitTone4.Checked,
-                            HoldMusic = checkBoxHoldMusic4.Checked,
-                            HoldOn = checkBoxHoldOn4.Checked,
-                            HoldCourse = checkBoxHoldCourse4.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 34,
+                                Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
+                                Stop = comboBoxStopHourInterval4.Text + ":" + comboBoxStopMinuteInterval4.Text + ":" + "00" + " " + comboBoxStopFormatInterval4.Text,
+                                EntranceTone = checkBoxEntranceTone4.Checked,
+                                ExitTone = checkBoxExitTone4.Checked,
+                                HoldMusic = checkBoxHoldMusic4.Checked,
+                                HoldOn = checkBoxHoldOn4.Checked,
+                                HoldCourse = checkBoxHoldCourse4.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval5.Text != "" && comboBoxStartMinuteInterval5.Text != "" && comboBoxStartFormatInterval5.Text != "") &&
-                        (comboBoxStopHourInterval5.Text != "" && comboBoxStopMinuteInterval5.Text != "" && comboBoxStopFormatInterval5.Text != "") &&
-                        (checkBoxEntranceTone5.Checked == false || checkBoxEntranceTone5.Checked == true) &&
-                        (checkBoxExitTone5.Checked == false || checkBoxExitTone5.Checked == true) &&
-                        (checkBoxHoldMusic5.Checked == false || checkBoxHoldMusic5.Checked == true) &&
-                        (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
-                        (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval5.Text != "" && comboBoxStartMinuteInterval5.Text != "" && comboBoxStartFormatInterval5.Text != "") &&
+                            (comboBoxStopHourInterval5.Text != "" && comboBoxStopMinuteInterval5.Text != "" && comboBoxStopFormatInterval5.Text != "") &&
+                            (checkBoxEntranceTone5.Checked == false || checkBoxEntranceTone5.Checked == true) &&
+                            (checkBoxExitTone5.Checked == false || checkBoxExitTone5.Checked == true) &&
+                            (checkBoxHoldMusic5.Checked == false || checkBoxHoldMusic5.Checked == true) &&
+                            (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
+                            (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
                         {
-                            Id = 45,
-                            Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
-                            Stop = comboBoxStopHourInterval5.Text + ":" + comboBoxStopMinuteInterval5.Text + ":" + "00" + " " + comboBoxStopFormatInterval5.Text,
-                            EntranceTone = checkBoxEntranceTone5.Checked,
-                            ExitTone = checkBoxExitTone5.Checked,
-                            HoldMusic = checkBoxHoldMusic5.Checked,
-                            HoldOn = checkBoxHoldOn5.Checked,
-                            HoldCourse = checkBoxHoldCourse5.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 35,
+                                Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
+                                Stop = comboBoxStopHourInterval5.Text + ":" + comboBoxStopMinuteInterval5.Text + ":" + "00" + " " + comboBoxStopFormatInterval5.Text,
+                                EntranceTone = checkBoxEntranceTone5.Checked,
+                                ExitTone = checkBoxExitTone5.Checked,
+                                HoldMusic = checkBoxHoldMusic5.Checked,
+                                HoldOn = checkBoxHoldOn5.Checked,
+                                HoldCourse = checkBoxHoldCourse5.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval6.Text != "" && comboBoxStartMinuteInterval6.Text != "" && comboBoxStartFormatInterval6.Text != "") &&
-                        (comboBoxStopHourInterval6.Text != "" && comboBoxStopMinuteInterval6.Text != "" && comboBoxStopFormatInterval6.Text != "") &&
-                        (checkBoxEntranceTone6.Checked == false || checkBoxEntranceTone6.Checked == true) &&
-                        (checkBoxExitTone6.Checked == false || checkBoxExitTone6.Checked == true) &&
-                        (checkBoxHoldMusic6.Checked == false || checkBoxHoldMusic6.Checked == true) &&
-                        (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
-                        (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval6.Text != "" && comboBoxStartMinuteInterval6.Text != "" && comboBoxStartFormatInterval6.Text != "") &&
+                            (comboBoxStopHourInterval6.Text != "" && comboBoxStopMinuteInterval6.Text != "" && comboBoxStopFormatInterval6.Text != "") &&
+                            (checkBoxEntranceTone6.Checked == false || checkBoxEntranceTone6.Checked == true) &&
+                            (checkBoxExitTone6.Checked == false || checkBoxExitTone6.Checked == true) &&
+                            (checkBoxHoldMusic6.Checked == false || checkBoxHoldMusic6.Checked == true) &&
+                            (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
+                            (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
                         {
-                            Id = 46,
-                            Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
-                            Stop = comboBoxStopHourInterval6.Text + ":" + comboBoxStopMinuteInterval6.Text + ":" + "00" + " " + comboBoxStopFormatInterval6.Text,
-                            EntranceTone = checkBoxEntranceTone6.Checked,
-                            ExitTone = checkBoxExitTone6.Checked,
-                            HoldMusic = checkBoxHoldMusic6.Checked,
-                            HoldOn = checkBoxHoldOn6.Checked,
-                            HoldCourse = checkBoxHoldCourse6.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 36,
+                                Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
+                                Stop = comboBoxStopHourInterval6.Text + ":" + comboBoxStopMinuteInterval6.Text + ":" + "00" + " " + comboBoxStopFormatInterval6.Text,
+                                EntranceTone = checkBoxEntranceTone6.Checked,
+                                ExitTone = checkBoxExitTone6.Checked,
+                                HoldMusic = checkBoxHoldMusic6.Checked,
+                                HoldOn = checkBoxHoldOn6.Checked,
+                                HoldCourse = checkBoxHoldCourse6.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval7.Text != "" && comboBoxStartMinuteInterval7.Text != "" && comboBoxStartFormatInterval7.Text != "") &&
-                        (comboBoxStopHourInterval7.Text != "" && comboBoxStopMinuteInterval7.Text != "" && comboBoxStopFormatInterval7.Text != "") &&
-                        (checkBoxEntranceTone7.Checked == false || checkBoxEntranceTone7.Checked == true) &&
-                        (checkBoxExitTone7.Checked == false || checkBoxExitTone7.Checked == true) &&
-                        (checkBoxHoldMusic7.Checked == false || checkBoxHoldMusic7.Checked == true) &&
-                        (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
-                        (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval7.Text != "" && comboBoxStartMinuteInterval7.Text != "" && comboBoxStartFormatInterval7.Text != "") &&
+                            (comboBoxStopHourInterval7.Text != "" && comboBoxStopMinuteInterval7.Text != "" && comboBoxStopFormatInterval7.Text != "") &&
+                            (checkBoxEntranceTone7.Checked == false || checkBoxEntranceTone7.Checked == true) &&
+                            (checkBoxExitTone7.Checked == false || checkBoxExitTone7.Checked == true) &&
+                            (checkBoxHoldMusic7.Checked == false || checkBoxHoldMusic7.Checked == true) &&
+                            (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
+                            (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
                         {
-                            Id = 47,
-                            Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
-                            Stop = comboBoxStopHourInterval7.Text + ":" + comboBoxStopMinuteInterval7.Text + ":" + "00" + " " + comboBoxStopFormatInterval7.Text,
-                            EntranceTone = checkBoxEntranceTone7.Checked,
-                            ExitTone = checkBoxExitTone7.Checked,
-                            HoldMusic = checkBoxHoldMusic7.Checked,
-                            HoldOn = checkBoxHoldOn7.Checked,
-                            HoldCourse = checkBoxHoldCourse7.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 37,
+                                Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
+                                Stop = comboBoxStopHourInterval7.Text + ":" + comboBoxStopMinuteInterval7.Text + ":" + "00" + " " + comboBoxStopFormatInterval7.Text,
+                                EntranceTone = checkBoxEntranceTone7.Checked,
+                                ExitTone = checkBoxExitTone7.Checked,
+                                HoldMusic = checkBoxHoldMusic7.Checked,
+                                HoldOn = checkBoxHoldOn7.Checked,
+                                HoldCourse = checkBoxHoldCourse7.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval8.Text != "" && comboBoxStartMinuteInterval8.Text != "" && comboBoxStartFormatInterval8.Text != "") &&
-                        (comboBoxStopHourInterval8.Text != "" && comboBoxStopMinuteInterval8.Text != "" && comboBoxStopFormatInterval8.Text != "") &&
-                        (checkBoxEntranceTone8.Checked == false || checkBoxEntranceTone8.Checked == true) &&
-                        (checkBoxExitTone8.Checked == false || checkBoxExitTone8.Checked == true) &&
-                        (checkBoxHoldMusic8.Checked == false || checkBoxHoldMusic8.Checked == true) &&
-                        (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
-                        (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval8.Text != "" && comboBoxStartMinuteInterval8.Text != "" && comboBoxStartFormatInterval8.Text != "") &&
+                            (comboBoxStopHourInterval8.Text != "" && comboBoxStopMinuteInterval8.Text != "" && comboBoxStopFormatInterval8.Text != "") &&
+                            (checkBoxEntranceTone8.Checked == false || checkBoxEntranceTone8.Checked == true) &&
+                            (checkBoxExitTone8.Checked == false || checkBoxExitTone8.Checked == true) &&
+                            (checkBoxHoldMusic8.Checked == false || checkBoxHoldMusic8.Checked == true) &&
+                            (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
+                            (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
                         {
-                            Id = 48,
-                            Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
-                            Stop = comboBoxStopHourInterval8.Text + ":" + comboBoxStopMinuteInterval8.Text + ":" + "00" + " " + comboBoxStopFormatInterval8.Text,
-                            EntranceTone = checkBoxEntranceTone8.Checked,
-                            ExitTone = checkBoxExitTone8.Checked,
-                            HoldMusic = checkBoxHoldMusic8.Checked,
-                            HoldOn = checkBoxHoldOn8.Checked,
-                            HoldCourse = checkBoxHoldCourse8.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 38,
+                                Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
+                                Stop = comboBoxStopHourInterval8.Text + ":" + comboBoxStopMinuteInterval8.Text + ":" + "00" + " " + comboBoxStopFormatInterval8.Text,
+                                EntranceTone = checkBoxEntranceTone8.Checked,
+                                ExitTone = checkBoxExitTone8.Checked,
+                                HoldMusic = checkBoxHoldMusic8.Checked,
+                                HoldOn = checkBoxHoldOn8.Checked,
+                                HoldCourse = checkBoxHoldCourse8.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval9.Text != "" && comboBoxStartMinuteInterval9.Text != "" && comboBoxStartFormatInterval9.Text != "") &&
-                        (comboBoxStopHourInterval9.Text != "" && comboBoxStopMinuteInterval9.Text != "" && comboBoxStopFormatInterval9.Text != "") &&
-                        (checkBoxEntranceTone9.Checked == false || checkBoxEntranceTone9.Checked == true) &&
-                        (checkBoxExitTone9.Checked == false || checkBoxExitTone9.Checked == true) &&
-                        (checkBoxHoldMusic9.Checked == false || checkBoxHoldMusic9.Checked == true) &&
-                        (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
-                        (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval9.Text != "" && comboBoxStartMinuteInterval9.Text != "" && comboBoxStartFormatInterval9.Text != "") &&
+                            (comboBoxStopHourInterval9.Text != "" && comboBoxStopMinuteInterval9.Text != "" && comboBoxStopFormatInterval9.Text != "") &&
+                            (checkBoxEntranceTone9.Checked == false || checkBoxEntranceTone9.Checked == true) &&
+                            (checkBoxExitTone9.Checked == false || checkBoxExitTone9.Checked == true) &&
+                            (checkBoxHoldMusic9.Checked == false || checkBoxHoldMusic9.Checked == true) &&
+                            (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
+                            (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
                         {
-                            Id = 49,
-                            Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
-                            Stop = comboBoxStopHourInterval9.Text + ":" + comboBoxStopMinuteInterval9.Text + ":" + "00" + " " + comboBoxStopFormatInterval9.Text,
-                            EntranceTone = checkBoxEntranceTone9.Checked,
-                            ExitTone = checkBoxExitTone9.Checked,
-                            HoldMusic = checkBoxHoldMusic9.Checked,
-                            HoldOn = checkBoxHoldOn9.Checked,
-                            HoldCourse = checkBoxHoldCourse9.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 39,
+                                Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
+                                Stop = comboBoxStopHourInterval9.Text + ":" + comboBoxStopMinuteInterval9.Text + ":" + "00" + " " + comboBoxStopFormatInterval9.Text,
+                                EntranceTone = checkBoxEntranceTone9.Checked,
+                                ExitTone = checkBoxExitTone9.Checked,
+                                HoldMusic = checkBoxHoldMusic9.Checked,
+                                HoldOn = checkBoxHoldOn9.Checked,
+                                HoldCourse = checkBoxHoldCourse9.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval10.Text != "" && comboBoxStartMinuteInterval10.Text != "" && comboBoxStartFormatInterval10.Text != "") &&
-                        (comboBoxStopHourInterval10.Text != "" && comboBoxStopMinuteInterval10.Text != "" && comboBoxStopFormatInterval10.Text != "") &&
-                        (checkBoxEntranceTone10.Checked == false || checkBoxEntranceTone10.Checked == true) &&
-                        (checkBoxExitTone10.Checked == false || checkBoxExitTone10.Checked == true) &&
-                        (checkBoxHoldMusic10.Checked == false || checkBoxHoldMusic10.Checked == true) &&
-                        (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
-                        (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval10.Text != "" && comboBoxStartMinuteInterval10.Text != "" && comboBoxStartFormatInterval10.Text != "") &&
+                            (comboBoxStopHourInterval10.Text != "" && comboBoxStopMinuteInterval10.Text != "" && comboBoxStopFormatInterval10.Text != "") &&
+                            (checkBoxEntranceTone10.Checked == false || checkBoxEntranceTone10.Checked == true) &&
+                            (checkBoxExitTone10.Checked == false || checkBoxExitTone10.Checked == true) &&
+                            (checkBoxHoldMusic10.Checked == false || checkBoxHoldMusic10.Checked == true) &&
+                            (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
+                            (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
                         {
-                            Id = 50,
-                            Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
-                            Stop = comboBoxStopHourInterval10.Text + ":" + comboBoxStopMinuteInterval10.Text + ":" + "00" + " " + comboBoxStopFormatInterval10.Text,
-                            EntranceTone = checkBoxEntranceTone10.Checked,
-                            ExitTone = checkBoxExitTone10.Checked,
-                            HoldMusic = checkBoxHoldMusic10.Checked,
-                            HoldOn = checkBoxHoldOn10.Checked,
-                            HoldCourse = checkBoxHoldCourse10.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 40,
+                                Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
+                                Stop = comboBoxStopHourInterval10.Text + ":" + comboBoxStopMinuteInterval10.Text + ":" + "00" + " " + comboBoxStopFormatInterval10.Text,
+                                EntranceTone = checkBoxEntranceTone10.Checked,
+                                ExitTone = checkBoxExitTone10.Checked,
+                                HoldMusic = checkBoxHoldMusic10.Checked,
+                                HoldOn = checkBoxHoldOn10.Checked,
+                                HoldCourse = checkBoxHoldCourse10.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    break;
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        break;
 
-                case "Sambata":
-                    if ((comboBoxStartHourInterval1.Text != "" && comboBoxStartMinuteInterval1.Text != "" && comboBoxStartFormatInterval1.Text != "") &&
-                    (comboBoxStopHourInterval1.Text != "" && comboBoxStopMinuteInterval1.Text != "" && comboBoxStopFormatInterval1.Text != "") &&
-                    (checkBoxExitTone1.Checked == false || checkBoxExitTone1.Checked == true) &&
-                    (checkBoxEntranceTone1.Checked == false || checkBoxEntranceTone1.Checked == true) &&
-                    (checkBoxHoldMusic1.Checked == false || checkBoxHoldMusic1.Checked == true) &&
-                    (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
-                    (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                    case "Vineri":
+                        if ((comboBoxStartHourInterval1.Text != "" && comboBoxStartMinuteInterval1.Text != "" && comboBoxStartFormatInterval1.Text != "") &&
+                        (comboBoxStopHourInterval1.Text != "" && comboBoxStopMinuteInterval1.Text != "" && comboBoxStopFormatInterval1.Text != "") &&
+                        (checkBoxExitTone1.Checked == false || checkBoxExitTone1.Checked == true) &&
+                        (checkBoxEntranceTone1.Checked == false || checkBoxEntranceTone1.Checked == true) &&
+                        (checkBoxHoldMusic1.Checked == false || checkBoxHoldMusic1.Checked == true) &&
+                        (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
+                        (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
                         {
-                            Id = 51,
-                            Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
-                            Stop = comboBoxStopHourInterval1.Text + ":" + comboBoxStopMinuteInterval1.Text + ":" + "00" + " " + comboBoxStopFormatInterval1.Text,
-                            EntranceTone = checkBoxEntranceTone1.Checked,
-                            ExitTone = checkBoxExitTone1.Checked,
-                            HoldMusic = checkBoxHoldMusic1.Checked,
-                            HoldOn = checkBoxHoldOn1.Checked,
-                            HoldCourse = checkBoxHoldCourse1.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 41,
+                                Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
+                                Stop = comboBoxStopHourInterval1.Text + ":" + comboBoxStopMinuteInterval1.Text + ":" + "00" + " " + comboBoxStopFormatInterval1.Text,
+                                EntranceTone = checkBoxEntranceTone1.Checked,
+                                ExitTone = checkBoxExitTone1.Checked,
+                                HoldMusic = checkBoxHoldMusic1.Checked,
+                                HoldOn = checkBoxHoldOn1.Checked,
+                                HoldCourse = checkBoxHoldCourse1.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval2.Text != "" && comboBoxStartMinuteInterval2.Text != "" && comboBoxStartFormatInterval2.Text != "") &&
-                        (comboBoxStopHourInterval2.Text != "" && comboBoxStopMinuteInterval2.Text != "" && comboBoxStopFormatInterval2.Text != "") &&
-                        (checkBoxEntranceTone2.Checked == false || checkBoxEntranceTone2.Checked == true) &&
-                        (checkBoxExitTone2.Checked == false || checkBoxExitTone2.Checked == true) &&
-                        (checkBoxHoldMusic2.Checked == false || checkBoxHoldMusic2.Checked == true) &&
-                        (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
-                        (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval2.Text != "" && comboBoxStartMinuteInterval2.Text != "" && comboBoxStartFormatInterval2.Text != "") &&
+                            (comboBoxStopHourInterval2.Text != "" && comboBoxStopMinuteInterval2.Text != "" && comboBoxStopFormatInterval2.Text != "") &&
+                            (checkBoxEntranceTone2.Checked == false || checkBoxEntranceTone2.Checked == true) &&
+                            (checkBoxExitTone2.Checked == false || checkBoxExitTone2.Checked == true) &&
+                            (checkBoxHoldMusic2.Checked == false || checkBoxHoldMusic2.Checked == true) &&
+                            (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
+                            (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
                         {
-                            Id = 52,
-                            Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
-                            Stop = comboBoxStopHourInterval2.Text + ":" + comboBoxStopMinuteInterval2.Text + ":" + "00" + " " + comboBoxStopFormatInterval2.Text,
-                            EntranceTone = checkBoxEntranceTone2.Checked,
-                            ExitTone = checkBoxExitTone2.Checked,
-                            HoldMusic = checkBoxHoldMusic2.Checked,
-                            HoldOn = checkBoxHoldOn2.Checked,
-                            HoldCourse = checkBoxHoldCourse2.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 42,
+                                Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
+                                Stop = comboBoxStopHourInterval2.Text + ":" + comboBoxStopMinuteInterval2.Text + ":" + "00" + " " + comboBoxStopFormatInterval2.Text,
+                                EntranceTone = checkBoxEntranceTone2.Checked,
+                                ExitTone = checkBoxExitTone2.Checked,
+                                HoldMusic = checkBoxHoldMusic2.Checked,
+                                HoldOn = checkBoxHoldOn2.Checked,
+                                HoldCourse = checkBoxHoldCourse2.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval3.Text != "" && comboBoxStartMinuteInterval3.Text != "" && comboBoxStartFormatInterval3.Text != "") &&
-                        (comboBoxStopHourInterval3.Text != "" && comboBoxStopMinuteInterval3.Text != "" && comboBoxStopFormatInterval3.Text != "") &&
-                        (checkBoxEntranceTone3.Checked == false || checkBoxEntranceTone3.Checked == true) &&
-                        (checkBoxExitTone3.Checked == false || checkBoxExitTone3.Checked == true) &&
-                        (checkBoxHoldMusic3.Checked == false || checkBoxHoldMusic3.Checked == true) &&
-                        (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
-                        (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval3.Text != "" && comboBoxStartMinuteInterval3.Text != "" && comboBoxStartFormatInterval3.Text != "") &&
+                            (comboBoxStopHourInterval3.Text != "" && comboBoxStopMinuteInterval3.Text != "" && comboBoxStopFormatInterval3.Text != "") &&
+                            (checkBoxEntranceTone3.Checked == false || checkBoxEntranceTone3.Checked == true) &&
+                            (checkBoxExitTone3.Checked == false || checkBoxExitTone3.Checked == true) &&
+                            (checkBoxHoldMusic3.Checked == false || checkBoxHoldMusic3.Checked == true) &&
+                            (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
+                            (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
                         {
-                            Id = 53,
-                            Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
-                            Stop = comboBoxStopHourInterval3.Text + ":" + comboBoxStopMinuteInterval3.Text + ":" + "00" + " " + comboBoxStopFormatInterval3.Text,
-                            EntranceTone = checkBoxEntranceTone3.Checked,
-                            ExitTone = checkBoxExitTone3.Checked,
-                            HoldMusic = checkBoxHoldMusic3.Checked,
-                            HoldOn = checkBoxHoldOn3.Checked,
-                            HoldCourse = checkBoxHoldCourse3.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 43,
+                                Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
+                                Stop = comboBoxStopHourInterval3.Text + ":" + comboBoxStopMinuteInterval3.Text + ":" + "00" + " " + comboBoxStopFormatInterval3.Text,
+                                EntranceTone = checkBoxEntranceTone3.Checked,
+                                ExitTone = checkBoxExitTone3.Checked,
+                                HoldMusic = checkBoxHoldMusic3.Checked,
+                                HoldOn = checkBoxHoldOn3.Checked,
+                                HoldCourse = checkBoxHoldCourse3.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval4.Text != "" && comboBoxStartMinuteInterval4.Text != "" && comboBoxStartFormatInterval4.Text != "") &&
-                        (comboBoxStopHourInterval4.Text != "" && comboBoxStopMinuteInterval4.Text != "" && comboBoxStopFormatInterval4.Text != "") &&
-                        (checkBoxEntranceTone4.Checked == false || checkBoxEntranceTone4.Checked == true) &&
-                        (checkBoxExitTone4.Checked == false || checkBoxExitTone4.Checked == true) &&
-                        (checkBoxHoldMusic4.Checked == false || checkBoxHoldMusic4.Checked == true) &&
-                        (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
-                        (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval4.Text != "" && comboBoxStartMinuteInterval4.Text != "" && comboBoxStartFormatInterval4.Text != "") &&
+                            (comboBoxStopHourInterval4.Text != "" && comboBoxStopMinuteInterval4.Text != "" && comboBoxStopFormatInterval4.Text != "") &&
+                            (checkBoxEntranceTone4.Checked == false || checkBoxEntranceTone4.Checked == true) &&
+                            (checkBoxExitTone4.Checked == false || checkBoxExitTone4.Checked == true) &&
+                            (checkBoxHoldMusic4.Checked == false || checkBoxHoldMusic4.Checked == true) &&
+                            (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
+                            (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
                         {
-                            Id = 54,
-                            Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
-                            Stop = comboBoxStopHourInterval4.Text + ":" + comboBoxStopMinuteInterval4.Text + ":" + "00" + " " + comboBoxStopFormatInterval4.Text,
-                            EntranceTone = checkBoxEntranceTone4.Checked,
-                            ExitTone = checkBoxExitTone4.Checked,
-                            HoldMusic = checkBoxHoldMusic4.Checked,
-                            HoldOn = checkBoxHoldOn4.Checked,
-                            HoldCourse = checkBoxHoldCourse4.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 44,
+                                Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
+                                Stop = comboBoxStopHourInterval4.Text + ":" + comboBoxStopMinuteInterval4.Text + ":" + "00" + " " + comboBoxStopFormatInterval4.Text,
+                                EntranceTone = checkBoxEntranceTone4.Checked,
+                                ExitTone = checkBoxExitTone4.Checked,
+                                HoldMusic = checkBoxHoldMusic4.Checked,
+                                HoldOn = checkBoxHoldOn4.Checked,
+                                HoldCourse = checkBoxHoldCourse4.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval5.Text != "" && comboBoxStartMinuteInterval5.Text != "" && comboBoxStartFormatInterval5.Text != "") &&
-                        (comboBoxStopHourInterval5.Text != "" && comboBoxStopMinuteInterval5.Text != "" && comboBoxStopFormatInterval5.Text != "") &&
-                        (checkBoxEntranceTone5.Checked == false || checkBoxEntranceTone5.Checked == true) &&
-                        (checkBoxExitTone5.Checked == false || checkBoxExitTone5.Checked == true) &&
-                        (checkBoxHoldMusic5.Checked == false || checkBoxHoldMusic5.Checked == true) &&
-                        (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
-                        (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval5.Text != "" && comboBoxStartMinuteInterval5.Text != "" && comboBoxStartFormatInterval5.Text != "") &&
+                            (comboBoxStopHourInterval5.Text != "" && comboBoxStopMinuteInterval5.Text != "" && comboBoxStopFormatInterval5.Text != "") &&
+                            (checkBoxEntranceTone5.Checked == false || checkBoxEntranceTone5.Checked == true) &&
+                            (checkBoxExitTone5.Checked == false || checkBoxExitTone5.Checked == true) &&
+                            (checkBoxHoldMusic5.Checked == false || checkBoxHoldMusic5.Checked == true) &&
+                            (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
+                            (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
                         {
-                            Id = 55,
-                            Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
-                            Stop = comboBoxStopHourInterval5.Text + ":" + comboBoxStopMinuteInterval5.Text + ":" + "00" + " " + comboBoxStopFormatInterval5.Text,
-                            EntranceTone = checkBoxEntranceTone5.Checked,
-                            ExitTone = checkBoxExitTone5.Checked,
-                            HoldMusic = checkBoxHoldMusic5.Checked,
-                            HoldOn = checkBoxHoldOn5.Checked,
-                            HoldCourse = checkBoxHoldCourse5.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 45,
+                                Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
+                                Stop = comboBoxStopHourInterval5.Text + ":" + comboBoxStopMinuteInterval5.Text + ":" + "00" + " " + comboBoxStopFormatInterval5.Text,
+                                EntranceTone = checkBoxEntranceTone5.Checked,
+                                ExitTone = checkBoxExitTone5.Checked,
+                                HoldMusic = checkBoxHoldMusic5.Checked,
+                                HoldOn = checkBoxHoldOn5.Checked,
+                                HoldCourse = checkBoxHoldCourse5.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval6.Text != "" && comboBoxStartMinuteInterval6.Text != "" && comboBoxStartFormatInterval6.Text != "") &&
-                        (comboBoxStopHourInterval6.Text != "" && comboBoxStopMinuteInterval6.Text != "" && comboBoxStopFormatInterval6.Text != "") &&
-                        (checkBoxEntranceTone6.Checked == false || checkBoxEntranceTone6.Checked == true) &&
-                        (checkBoxExitTone6.Checked == false || checkBoxExitTone6.Checked == true) &&
-                        (checkBoxHoldMusic6.Checked == false || checkBoxHoldMusic6.Checked == true) &&
-                        (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
-                        (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval6.Text != "" && comboBoxStartMinuteInterval6.Text != "" && comboBoxStartFormatInterval6.Text != "") &&
+                            (comboBoxStopHourInterval6.Text != "" && comboBoxStopMinuteInterval6.Text != "" && comboBoxStopFormatInterval6.Text != "") &&
+                            (checkBoxEntranceTone6.Checked == false || checkBoxEntranceTone6.Checked == true) &&
+                            (checkBoxExitTone6.Checked == false || checkBoxExitTone6.Checked == true) &&
+                            (checkBoxHoldMusic6.Checked == false || checkBoxHoldMusic6.Checked == true) &&
+                            (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
+                            (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
                         {
-                            Id = 56,
-                            Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
-                            Stop = comboBoxStopHourInterval6.Text + ":" + comboBoxStopMinuteInterval6.Text + ":" + "00" + " " + comboBoxStopFormatInterval6.Text,
-                            EntranceTone = checkBoxEntranceTone6.Checked,
-                            ExitTone = checkBoxExitTone6.Checked,
-                            HoldMusic = checkBoxHoldMusic6.Checked,
-                            HoldOn = checkBoxHoldOn6.Checked,
-                            HoldCourse = checkBoxHoldCourse6.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 46,
+                                Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
+                                Stop = comboBoxStopHourInterval6.Text + ":" + comboBoxStopMinuteInterval6.Text + ":" + "00" + " " + comboBoxStopFormatInterval6.Text,
+                                EntranceTone = checkBoxEntranceTone6.Checked,
+                                ExitTone = checkBoxExitTone6.Checked,
+                                HoldMusic = checkBoxHoldMusic6.Checked,
+                                HoldOn = checkBoxHoldOn6.Checked,
+                                HoldCourse = checkBoxHoldCourse6.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval7.Text != "" && comboBoxStartMinuteInterval7.Text != "" && comboBoxStartFormatInterval7.Text != "") &&
-                        (comboBoxStopHourInterval7.Text != "" && comboBoxStopMinuteInterval7.Text != "" && comboBoxStopFormatInterval7.Text != "") &&
-                        (checkBoxEntranceTone7.Checked == false || checkBoxEntranceTone7.Checked == true) &&
-                        (checkBoxExitTone7.Checked == false || checkBoxExitTone7.Checked == true) &&
-                        (checkBoxHoldMusic7.Checked == false || checkBoxHoldMusic7.Checked == true) &&
-                        (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
-                        (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval7.Text != "" && comboBoxStartMinuteInterval7.Text != "" && comboBoxStartFormatInterval7.Text != "") &&
+                            (comboBoxStopHourInterval7.Text != "" && comboBoxStopMinuteInterval7.Text != "" && comboBoxStopFormatInterval7.Text != "") &&
+                            (checkBoxEntranceTone7.Checked == false || checkBoxEntranceTone7.Checked == true) &&
+                            (checkBoxExitTone7.Checked == false || checkBoxExitTone7.Checked == true) &&
+                            (checkBoxHoldMusic7.Checked == false || checkBoxHoldMusic7.Checked == true) &&
+                            (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
+                            (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
                         {
-                            Id = 57,
-                            Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
-                            Stop = comboBoxStopHourInterval7.Text + ":" + comboBoxStopMinuteInterval7.Text + ":" + "00" + " " + comboBoxStopFormatInterval7.Text,
-                            EntranceTone = checkBoxEntranceTone7.Checked,
-                            ExitTone = checkBoxExitTone7.Checked,
-                            HoldMusic = checkBoxHoldMusic7.Checked,
-                            HoldOn = checkBoxHoldOn7.Checked,
-                            HoldCourse = checkBoxHoldCourse7.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 47,
+                                Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
+                                Stop = comboBoxStopHourInterval7.Text + ":" + comboBoxStopMinuteInterval7.Text + ":" + "00" + " " + comboBoxStopFormatInterval7.Text,
+                                EntranceTone = checkBoxEntranceTone7.Checked,
+                                ExitTone = checkBoxExitTone7.Checked,
+                                HoldMusic = checkBoxHoldMusic7.Checked,
+                                HoldOn = checkBoxHoldOn7.Checked,
+                                HoldCourse = checkBoxHoldCourse7.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval8.Text != "" && comboBoxStartMinuteInterval8.Text != "" && comboBoxStartFormatInterval8.Text != "") &&
-                        (comboBoxStopHourInterval8.Text != "" && comboBoxStopMinuteInterval8.Text != "" && comboBoxStopFormatInterval8.Text != "") &&
-                        (checkBoxEntranceTone8.Checked == false || checkBoxEntranceTone8.Checked == true) &&
-                        (checkBoxExitTone8.Checked == false || checkBoxExitTone8.Checked == true) &&
-                        (checkBoxHoldMusic8.Checked == false || checkBoxHoldMusic8.Checked == true) &&
-                        (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
-                        (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval8.Text != "" && comboBoxStartMinuteInterval8.Text != "" && comboBoxStartFormatInterval8.Text != "") &&
+                            (comboBoxStopHourInterval8.Text != "" && comboBoxStopMinuteInterval8.Text != "" && comboBoxStopFormatInterval8.Text != "") &&
+                            (checkBoxEntranceTone8.Checked == false || checkBoxEntranceTone8.Checked == true) &&
+                            (checkBoxExitTone8.Checked == false || checkBoxExitTone8.Checked == true) &&
+                            (checkBoxHoldMusic8.Checked == false || checkBoxHoldMusic8.Checked == true) &&
+                            (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
+                            (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
                         {
-                            Id = 58,
-                            Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
-                            Stop = comboBoxStopHourInterval8.Text + ":" + comboBoxStopMinuteInterval8.Text + ":" + "00" + " " + comboBoxStopFormatInterval8.Text,
-                            EntranceTone = checkBoxEntranceTone8.Checked,
-                            ExitTone = checkBoxExitTone8.Checked,
-                            HoldMusic = checkBoxHoldMusic8.Checked,
-                            HoldOn = checkBoxHoldOn8.Checked,
-                            HoldCourse = checkBoxHoldCourse8.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 48,
+                                Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
+                                Stop = comboBoxStopHourInterval8.Text + ":" + comboBoxStopMinuteInterval8.Text + ":" + "00" + " " + comboBoxStopFormatInterval8.Text,
+                                EntranceTone = checkBoxEntranceTone8.Checked,
+                                ExitTone = checkBoxExitTone8.Checked,
+                                HoldMusic = checkBoxHoldMusic8.Checked,
+                                HoldOn = checkBoxHoldOn8.Checked,
+                                HoldCourse = checkBoxHoldCourse8.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval9.Text != "" && comboBoxStartMinuteInterval9.Text != "" && comboBoxStartFormatInterval9.Text != "") &&
-                        (comboBoxStopHourInterval9.Text != "" && comboBoxStopMinuteInterval9.Text != "" && comboBoxStopFormatInterval9.Text != "") &&
-                        (checkBoxEntranceTone9.Checked == false || checkBoxEntranceTone9.Checked == true) &&
-                        (checkBoxExitTone9.Checked == false || checkBoxExitTone9.Checked == true) &&
-                        (checkBoxHoldMusic9.Checked == false || checkBoxHoldMusic9.Checked == true) &&
-                        (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
-                        (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval9.Text != "" && comboBoxStartMinuteInterval9.Text != "" && comboBoxStartFormatInterval9.Text != "") &&
+                            (comboBoxStopHourInterval9.Text != "" && comboBoxStopMinuteInterval9.Text != "" && comboBoxStopFormatInterval9.Text != "") &&
+                            (checkBoxEntranceTone9.Checked == false || checkBoxEntranceTone9.Checked == true) &&
+                            (checkBoxExitTone9.Checked == false || checkBoxExitTone9.Checked == true) &&
+                            (checkBoxHoldMusic9.Checked == false || checkBoxHoldMusic9.Checked == true) &&
+                            (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
+                            (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
                         {
-                            Id = 59,
-                            Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
-                            Stop = comboBoxStopHourInterval9.Text + ":" + comboBoxStopMinuteInterval9.Text + ":" + "00" + " " + comboBoxStopFormatInterval9.Text,
-                            EntranceTone = checkBoxEntranceTone9.Checked,
-                            ExitTone = checkBoxExitTone9.Checked,
-                            HoldMusic = checkBoxHoldMusic9.Checked,
-                            HoldOn = checkBoxHoldOn9.Checked,
-                            HoldCourse = checkBoxHoldCourse9.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 49,
+                                Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
+                                Stop = comboBoxStopHourInterval9.Text + ":" + comboBoxStopMinuteInterval9.Text + ":" + "00" + " " + comboBoxStopFormatInterval9.Text,
+                                EntranceTone = checkBoxEntranceTone9.Checked,
+                                ExitTone = checkBoxExitTone9.Checked,
+                                HoldMusic = checkBoxHoldMusic9.Checked,
+                                HoldOn = checkBoxHoldOn9.Checked,
+                                HoldCourse = checkBoxHoldCourse9.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval10.Text != "" && comboBoxStartMinuteInterval10.Text != "" && comboBoxStartFormatInterval10.Text != "") &&
-                        (comboBoxStopHourInterval10.Text != "" && comboBoxStopMinuteInterval10.Text != "" && comboBoxStopFormatInterval10.Text != "") &&
-                        (checkBoxEntranceTone10.Checked == false || checkBoxEntranceTone10.Checked == true) &&
-                        (checkBoxExitTone10.Checked == false || checkBoxExitTone10.Checked == true) &&
-                        (checkBoxHoldMusic10.Checked == false || checkBoxHoldMusic10.Checked == true) &&
-                        (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
-                        (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval10.Text != "" && comboBoxStartMinuteInterval10.Text != "" && comboBoxStartFormatInterval10.Text != "") &&
+                            (comboBoxStopHourInterval10.Text != "" && comboBoxStopMinuteInterval10.Text != "" && comboBoxStopFormatInterval10.Text != "") &&
+                            (checkBoxEntranceTone10.Checked == false || checkBoxEntranceTone10.Checked == true) &&
+                            (checkBoxExitTone10.Checked == false || checkBoxExitTone10.Checked == true) &&
+                            (checkBoxHoldMusic10.Checked == false || checkBoxHoldMusic10.Checked == true) &&
+                            (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
+                            (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
                         {
-                            Id = 60,
-                            Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
-                            Stop = comboBoxStopHourInterval10.Text + ":" + comboBoxStopMinuteInterval10.Text + ":" + "00" + " " + comboBoxStopFormatInterval10.Text,
-                            EntranceTone = checkBoxEntranceTone10.Checked,
-                            ExitTone = checkBoxExitTone10.Checked,
-                            HoldMusic = checkBoxHoldMusic10.Checked,
-                            HoldOn = checkBoxHoldOn10.Checked,
-                            HoldCourse = checkBoxHoldCourse10.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 50,
+                                Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
+                                Stop = comboBoxStopHourInterval10.Text + ":" + comboBoxStopMinuteInterval10.Text + ":" + "00" + " " + comboBoxStopFormatInterval10.Text,
+                                EntranceTone = checkBoxEntranceTone10.Checked,
+                                ExitTone = checkBoxExitTone10.Checked,
+                                HoldMusic = checkBoxHoldMusic10.Checked,
+                                HoldOn = checkBoxHoldOn10.Checked,
+                                HoldCourse = checkBoxHoldCourse10.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    break;
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        break;
 
-                case "Duminica":
-                    if ((comboBoxStartHourInterval1.Text != "" && comboBoxStartMinuteInterval1.Text != "" && comboBoxStartFormatInterval1.Text != "") &&
-                    (comboBoxStopHourInterval1.Text != "" && comboBoxStopMinuteInterval1.Text != "" && comboBoxStopFormatInterval1.Text != "") &&
-                    (checkBoxExitTone1.Checked == false || checkBoxExitTone1.Checked == true) &&
-                    (checkBoxEntranceTone1.Checked == false || checkBoxEntranceTone1.Checked == true) &&
-                    (checkBoxHoldMusic1.Checked == false || checkBoxHoldMusic1.Checked == true) &&
-                    (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
-                    (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                    case "Sambata":
+                        if ((comboBoxStartHourInterval1.Text != "" && comboBoxStartMinuteInterval1.Text != "" && comboBoxStartFormatInterval1.Text != "") &&
+                        (comboBoxStopHourInterval1.Text != "" && comboBoxStopMinuteInterval1.Text != "" && comboBoxStopFormatInterval1.Text != "") &&
+                        (checkBoxExitTone1.Checked == false || checkBoxExitTone1.Checked == true) &&
+                        (checkBoxEntranceTone1.Checked == false || checkBoxEntranceTone1.Checked == true) &&
+                        (checkBoxHoldMusic1.Checked == false || checkBoxHoldMusic1.Checked == true) &&
+                        (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
+                        (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
                         {
-                            Id = 61,
-                            Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
-                            Stop = comboBoxStopHourInterval1.Text + ":" + comboBoxStopMinuteInterval1.Text + ":" + "00" + " " + comboBoxStopFormatInterval1.Text,
-                            EntranceTone = checkBoxEntranceTone1.Checked,
-                            ExitTone = checkBoxExitTone1.Checked,
-                            HoldMusic = checkBoxHoldMusic1.Checked,
-                            HoldOn = checkBoxHoldOn1.Checked,
-                            HoldCourse = checkBoxHoldCourse1.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 51,
+                                Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
+                                Stop = comboBoxStopHourInterval1.Text + ":" + comboBoxStopMinuteInterval1.Text + ":" + "00" + " " + comboBoxStopFormatInterval1.Text,
+                                EntranceTone = checkBoxEntranceTone1.Checked,
+                                ExitTone = checkBoxExitTone1.Checked,
+                                HoldMusic = checkBoxHoldMusic1.Checked,
+                                HoldOn = checkBoxHoldOn1.Checked,
+                                HoldCourse = checkBoxHoldCourse1.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval2.Text != "" && comboBoxStartMinuteInterval2.Text != "" && comboBoxStartFormatInterval2.Text != "") &&
-                        (comboBoxStopHourInterval2.Text != "" && comboBoxStopMinuteInterval2.Text != "" && comboBoxStopFormatInterval2.Text != "") &&
-                        (checkBoxEntranceTone2.Checked == false || checkBoxEntranceTone2.Checked == true) &&
-                        (checkBoxExitTone2.Checked == false || checkBoxExitTone2.Checked == true) &&
-                        (checkBoxHoldMusic2.Checked == false || checkBoxHoldMusic2.Checked == true) &&
-                        (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
-                        (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval2.Text != "" && comboBoxStartMinuteInterval2.Text != "" && comboBoxStartFormatInterval2.Text != "") &&
+                            (comboBoxStopHourInterval2.Text != "" && comboBoxStopMinuteInterval2.Text != "" && comboBoxStopFormatInterval2.Text != "") &&
+                            (checkBoxEntranceTone2.Checked == false || checkBoxEntranceTone2.Checked == true) &&
+                            (checkBoxExitTone2.Checked == false || checkBoxExitTone2.Checked == true) &&
+                            (checkBoxHoldMusic2.Checked == false || checkBoxHoldMusic2.Checked == true) &&
+                            (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
+                            (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
                         {
-                            Id = 62,
-                            Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
-                            Stop = comboBoxStopHourInterval2.Text + ":" + comboBoxStopMinuteInterval2.Text + ":" + "00" + " " + comboBoxStopFormatInterval2.Text,
-                            EntranceTone = checkBoxEntranceTone2.Checked,
-                            ExitTone = checkBoxExitTone2.Checked,
-                            HoldMusic = checkBoxHoldMusic2.Checked,
-                            HoldOn = checkBoxHoldOn2.Checked,
-                            HoldCourse = checkBoxHoldCourse2.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 52,
+                                Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
+                                Stop = comboBoxStopHourInterval2.Text + ":" + comboBoxStopMinuteInterval2.Text + ":" + "00" + " " + comboBoxStopFormatInterval2.Text,
+                                EntranceTone = checkBoxEntranceTone2.Checked,
+                                ExitTone = checkBoxExitTone2.Checked,
+                                HoldMusic = checkBoxHoldMusic2.Checked,
+                                HoldOn = checkBoxHoldOn2.Checked,
+                                HoldCourse = checkBoxHoldCourse2.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval3.Text != "" && comboBoxStartMinuteInterval3.Text != "" && comboBoxStartFormatInterval3.Text != "") &&
-                        (comboBoxStopHourInterval3.Text != "" && comboBoxStopMinuteInterval3.Text != "" && comboBoxStopFormatInterval3.Text != "") &&
-                        (checkBoxEntranceTone3.Checked == false || checkBoxEntranceTone3.Checked == true) &&
-                        (checkBoxExitTone3.Checked == false || checkBoxExitTone3.Checked == true) &&
-                        (checkBoxHoldMusic3.Checked == false || checkBoxHoldMusic3.Checked == true) &&
-                        (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
-                        (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval3.Text != "" && comboBoxStartMinuteInterval3.Text != "" && comboBoxStartFormatInterval3.Text != "") &&
+                            (comboBoxStopHourInterval3.Text != "" && comboBoxStopMinuteInterval3.Text != "" && comboBoxStopFormatInterval3.Text != "") &&
+                            (checkBoxEntranceTone3.Checked == false || checkBoxEntranceTone3.Checked == true) &&
+                            (checkBoxExitTone3.Checked == false || checkBoxExitTone3.Checked == true) &&
+                            (checkBoxHoldMusic3.Checked == false || checkBoxHoldMusic3.Checked == true) &&
+                            (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
+                            (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
                         {
-                            Id = 63,
-                            Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
-                            Stop = comboBoxStopHourInterval3.Text + ":" + comboBoxStopMinuteInterval3.Text + ":" + "00" + " " + comboBoxStopFormatInterval3.Text,
-                            EntranceTone = checkBoxEntranceTone3.Checked,
-                            ExitTone = checkBoxExitTone3.Checked,
-                            HoldMusic = checkBoxHoldMusic3.Checked,
-                            HoldOn = checkBoxHoldOn3.Checked,
-                            HoldCourse = checkBoxHoldCourse3.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 53,
+                                Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
+                                Stop = comboBoxStopHourInterval3.Text + ":" + comboBoxStopMinuteInterval3.Text + ":" + "00" + " " + comboBoxStopFormatInterval3.Text,
+                                EntranceTone = checkBoxEntranceTone3.Checked,
+                                ExitTone = checkBoxExitTone3.Checked,
+                                HoldMusic = checkBoxHoldMusic3.Checked,
+                                HoldOn = checkBoxHoldOn3.Checked,
+                                HoldCourse = checkBoxHoldCourse3.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval4.Text != "" && comboBoxStartMinuteInterval4.Text != "" && comboBoxStartFormatInterval4.Text != "") &&
-                        (comboBoxStopHourInterval4.Text != "" && comboBoxStopMinuteInterval4.Text != "" && comboBoxStopFormatInterval4.Text != "") &&
-                        (checkBoxEntranceTone4.Checked == false || checkBoxEntranceTone4.Checked == true) &&
-                        (checkBoxExitTone4.Checked == false || checkBoxExitTone4.Checked == true) &&
-                        (checkBoxHoldMusic4.Checked == false || checkBoxHoldMusic4.Checked == true) &&
-                        (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
-                        (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval4.Text != "" && comboBoxStartMinuteInterval4.Text != "" && comboBoxStartFormatInterval4.Text != "") &&
+                            (comboBoxStopHourInterval4.Text != "" && comboBoxStopMinuteInterval4.Text != "" && comboBoxStopFormatInterval4.Text != "") &&
+                            (checkBoxEntranceTone4.Checked == false || checkBoxEntranceTone4.Checked == true) &&
+                            (checkBoxExitTone4.Checked == false || checkBoxExitTone4.Checked == true) &&
+                            (checkBoxHoldMusic4.Checked == false || checkBoxHoldMusic4.Checked == true) &&
+                            (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
+                            (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
                         {
-                            Id = 64,
-                            Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
-                            Stop = comboBoxStopHourInterval4.Text + ":" + comboBoxStopMinuteInterval4.Text + ":" + "00" + " " + comboBoxStopFormatInterval4.Text,
-                            EntranceTone = checkBoxEntranceTone4.Checked,
-                            ExitTone = checkBoxExitTone4.Checked,
-                            HoldMusic = checkBoxHoldMusic4.Checked,
-                            HoldOn = checkBoxHoldOn4.Checked,
-                            HoldCourse = checkBoxHoldCourse4.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 54,
+                                Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
+                                Stop = comboBoxStopHourInterval4.Text + ":" + comboBoxStopMinuteInterval4.Text + ":" + "00" + " " + comboBoxStopFormatInterval4.Text,
+                                EntranceTone = checkBoxEntranceTone4.Checked,
+                                ExitTone = checkBoxExitTone4.Checked,
+                                HoldMusic = checkBoxHoldMusic4.Checked,
+                                HoldOn = checkBoxHoldOn4.Checked,
+                                HoldCourse = checkBoxHoldCourse4.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval5.Text != "" && comboBoxStartMinuteInterval5.Text != "" && comboBoxStartFormatInterval5.Text != "") &&
-                        (comboBoxStopHourInterval5.Text != "" && comboBoxStopMinuteInterval5.Text != "" && comboBoxStopFormatInterval5.Text != "") &&
-                        (checkBoxEntranceTone5.Checked == false || checkBoxEntranceTone5.Checked == true) &&
-                        (checkBoxExitTone5.Checked == false || checkBoxExitTone5.Checked == true) &&
-                        (checkBoxHoldMusic5.Checked == false || checkBoxHoldMusic5.Checked == true) &&
-                        (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
-                        (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval5.Text != "" && comboBoxStartMinuteInterval5.Text != "" && comboBoxStartFormatInterval5.Text != "") &&
+                            (comboBoxStopHourInterval5.Text != "" && comboBoxStopMinuteInterval5.Text != "" && comboBoxStopFormatInterval5.Text != "") &&
+                            (checkBoxEntranceTone5.Checked == false || checkBoxEntranceTone5.Checked == true) &&
+                            (checkBoxExitTone5.Checked == false || checkBoxExitTone5.Checked == true) &&
+                            (checkBoxHoldMusic5.Checked == false || checkBoxHoldMusic5.Checked == true) &&
+                            (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
+                            (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
                         {
-                            Id = 65,
-                            Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
-                            Stop = comboBoxStopHourInterval5.Text + ":" + comboBoxStopMinuteInterval5.Text + ":" + "00" + " " + comboBoxStopFormatInterval5.Text,
-                            EntranceTone = checkBoxEntranceTone5.Checked,
-                            ExitTone = checkBoxExitTone5.Checked,
-                            HoldMusic = checkBoxHoldMusic5.Checked,
-                            HoldOn = checkBoxHoldOn5.Checked,
-                            HoldCourse = checkBoxHoldCourse5.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 55,
+                                Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
+                                Stop = comboBoxStopHourInterval5.Text + ":" + comboBoxStopMinuteInterval5.Text + ":" + "00" + " " + comboBoxStopFormatInterval5.Text,
+                                EntranceTone = checkBoxEntranceTone5.Checked,
+                                ExitTone = checkBoxExitTone5.Checked,
+                                HoldMusic = checkBoxHoldMusic5.Checked,
+                                HoldOn = checkBoxHoldOn5.Checked,
+                                HoldCourse = checkBoxHoldCourse5.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval6.Text != "" && comboBoxStartMinuteInterval6.Text != "" && comboBoxStartFormatInterval6.Text != "") &&
-                        (comboBoxStopHourInterval6.Text != "" && comboBoxStopMinuteInterval6.Text != "" && comboBoxStopFormatInterval6.Text != "") &&
-                        (checkBoxEntranceTone6.Checked == false || checkBoxEntranceTone6.Checked == true) &&
-                        (checkBoxExitTone6.Checked == false || checkBoxExitTone6.Checked == true) &&
-                        (checkBoxHoldMusic6.Checked == false || checkBoxHoldMusic6.Checked == true) &&
-                        (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
-                        (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval6.Text != "" && comboBoxStartMinuteInterval6.Text != "" && comboBoxStartFormatInterval6.Text != "") &&
+                            (comboBoxStopHourInterval6.Text != "" && comboBoxStopMinuteInterval6.Text != "" && comboBoxStopFormatInterval6.Text != "") &&
+                            (checkBoxEntranceTone6.Checked == false || checkBoxEntranceTone6.Checked == true) &&
+                            (checkBoxExitTone6.Checked == false || checkBoxExitTone6.Checked == true) &&
+                            (checkBoxHoldMusic6.Checked == false || checkBoxHoldMusic6.Checked == true) &&
+                            (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
+                            (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
                         {
-                            Id = 66,
-                            Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
-                            Stop = comboBoxStopHourInterval6.Text + ":" + comboBoxStopMinuteInterval6.Text + ":" + "00" + " " + comboBoxStopFormatInterval6.Text,
-                            EntranceTone = checkBoxEntranceTone6.Checked,
-                            ExitTone = checkBoxExitTone6.Checked,
-                            HoldMusic = checkBoxHoldMusic6.Checked,
-                            HoldOn = checkBoxHoldOn6.Checked,
-                            HoldCourse = checkBoxHoldCourse6.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 56,
+                                Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
+                                Stop = comboBoxStopHourInterval6.Text + ":" + comboBoxStopMinuteInterval6.Text + ":" + "00" + " " + comboBoxStopFormatInterval6.Text,
+                                EntranceTone = checkBoxEntranceTone6.Checked,
+                                ExitTone = checkBoxExitTone6.Checked,
+                                HoldMusic = checkBoxHoldMusic6.Checked,
+                                HoldOn = checkBoxHoldOn6.Checked,
+                                HoldCourse = checkBoxHoldCourse6.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval7.Text != "" && comboBoxStartMinuteInterval7.Text != "" && comboBoxStartFormatInterval7.Text != "") &&
-                        (comboBoxStopHourInterval7.Text != "" && comboBoxStopMinuteInterval7.Text != "" && comboBoxStopFormatInterval7.Text != "") &&
-                        (checkBoxEntranceTone7.Checked == false || checkBoxEntranceTone7.Checked == true) &&
-                        (checkBoxExitTone7.Checked == false || checkBoxExitTone7.Checked == true) &&
-                        (checkBoxHoldMusic7.Checked == false || checkBoxHoldMusic7.Checked == true) &&
-                        (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
-                        (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval7.Text != "" && comboBoxStartMinuteInterval7.Text != "" && comboBoxStartFormatInterval7.Text != "") &&
+                            (comboBoxStopHourInterval7.Text != "" && comboBoxStopMinuteInterval7.Text != "" && comboBoxStopFormatInterval7.Text != "") &&
+                            (checkBoxEntranceTone7.Checked == false || checkBoxEntranceTone7.Checked == true) &&
+                            (checkBoxExitTone7.Checked == false || checkBoxExitTone7.Checked == true) &&
+                            (checkBoxHoldMusic7.Checked == false || checkBoxHoldMusic7.Checked == true) &&
+                            (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
+                            (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
                         {
-                            Id = 67,
-                            Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
-                            Stop = comboBoxStopHourInterval7.Text + ":" + comboBoxStopMinuteInterval7.Text + ":" + "00" + " " + comboBoxStopFormatInterval7.Text,
-                            EntranceTone = checkBoxEntranceTone7.Checked,
-                            ExitTone = checkBoxExitTone7.Checked,
-                            HoldMusic = checkBoxHoldMusic7.Checked,
-                            HoldOn = checkBoxHoldOn7.Checked,
-                            HoldCourse = checkBoxHoldCourse7.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 57,
+                                Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
+                                Stop = comboBoxStopHourInterval7.Text + ":" + comboBoxStopMinuteInterval7.Text + ":" + "00" + " " + comboBoxStopFormatInterval7.Text,
+                                EntranceTone = checkBoxEntranceTone7.Checked,
+                                ExitTone = checkBoxExitTone7.Checked,
+                                HoldMusic = checkBoxHoldMusic7.Checked,
+                                HoldOn = checkBoxHoldOn7.Checked,
+                                HoldCourse = checkBoxHoldCourse7.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval8.Text != "" && comboBoxStartMinuteInterval8.Text != "" && comboBoxStartFormatInterval8.Text != "") &&
-                        (comboBoxStopHourInterval8.Text != "" && comboBoxStopMinuteInterval8.Text != "" && comboBoxStopFormatInterval8.Text != "") &&
-                        (checkBoxEntranceTone8.Checked == false || checkBoxEntranceTone8.Checked == true) &&
-                        (checkBoxExitTone8.Checked == false || checkBoxExitTone8.Checked == true) &&
-                        (checkBoxHoldMusic8.Checked == false || checkBoxHoldMusic8.Checked == true) &&
-                        (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
-                        (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval8.Text != "" && comboBoxStartMinuteInterval8.Text != "" && comboBoxStartFormatInterval8.Text != "") &&
+                            (comboBoxStopHourInterval8.Text != "" && comboBoxStopMinuteInterval8.Text != "" && comboBoxStopFormatInterval8.Text != "") &&
+                            (checkBoxEntranceTone8.Checked == false || checkBoxEntranceTone8.Checked == true) &&
+                            (checkBoxExitTone8.Checked == false || checkBoxExitTone8.Checked == true) &&
+                            (checkBoxHoldMusic8.Checked == false || checkBoxHoldMusic8.Checked == true) &&
+                            (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
+                            (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
                         {
-                            Id = 68,
-                            Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
-                            Stop = comboBoxStopHourInterval8.Text + ":" + comboBoxStopMinuteInterval8.Text + ":" + "00" + " " + comboBoxStopFormatInterval8.Text,
-                            EntranceTone = checkBoxEntranceTone8.Checked,
-                            ExitTone = checkBoxExitTone8.Checked,
-                            HoldMusic = checkBoxHoldMusic8.Checked,
-                            HoldOn = checkBoxHoldOn8.Checked,
-                            HoldCourse = checkBoxHoldCourse8.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 58,
+                                Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
+                                Stop = comboBoxStopHourInterval8.Text + ":" + comboBoxStopMinuteInterval8.Text + ":" + "00" + " " + comboBoxStopFormatInterval8.Text,
+                                EntranceTone = checkBoxEntranceTone8.Checked,
+                                ExitTone = checkBoxExitTone8.Checked,
+                                HoldMusic = checkBoxHoldMusic8.Checked,
+                                HoldOn = checkBoxHoldOn8.Checked,
+                                HoldCourse = checkBoxHoldCourse8.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval9.Text != "" && comboBoxStartMinuteInterval9.Text != "" && comboBoxStartFormatInterval9.Text != "") &&
-                        (comboBoxStopHourInterval9.Text != "" && comboBoxStopMinuteInterval9.Text != "" && comboBoxStopFormatInterval9.Text != "") &&
-                        (checkBoxEntranceTone9.Checked == false || checkBoxEntranceTone9.Checked == true) &&
-                        (checkBoxExitTone9.Checked == false || checkBoxExitTone9.Checked == true) &&
-                        (checkBoxHoldMusic9.Checked == false || checkBoxHoldMusic9.Checked == true) &&
-                        (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
-                        (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval9.Text != "" && comboBoxStartMinuteInterval9.Text != "" && comboBoxStartFormatInterval9.Text != "") &&
+                            (comboBoxStopHourInterval9.Text != "" && comboBoxStopMinuteInterval9.Text != "" && comboBoxStopFormatInterval9.Text != "") &&
+                            (checkBoxEntranceTone9.Checked == false || checkBoxEntranceTone9.Checked == true) &&
+                            (checkBoxExitTone9.Checked == false || checkBoxExitTone9.Checked == true) &&
+                            (checkBoxHoldMusic9.Checked == false || checkBoxHoldMusic9.Checked == true) &&
+                            (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
+                            (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
                         {
-                            Id = 69,
-                            Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
-                            Stop = comboBoxStopHourInterval9.Text + ":" + comboBoxStopMinuteInterval9.Text + ":" + "00" + " " + comboBoxStopFormatInterval9.Text,
-                            EntranceTone = checkBoxEntranceTone9.Checked,
-                            ExitTone = checkBoxExitTone9.Checked,
-                            HoldMusic = checkBoxHoldMusic9.Checked,
-                            HoldOn = checkBoxHoldOn9.Checked,
-                            HoldCourse = checkBoxHoldCourse9.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 59,
+                                Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
+                                Stop = comboBoxStopHourInterval9.Text + ":" + comboBoxStopMinuteInterval9.Text + ":" + "00" + " " + comboBoxStopFormatInterval9.Text,
+                                EntranceTone = checkBoxEntranceTone9.Checked,
+                                ExitTone = checkBoxExitTone9.Checked,
+                                HoldMusic = checkBoxHoldMusic9.Checked,
+                                HoldOn = checkBoxHoldOn9.Checked,
+                                HoldCourse = checkBoxHoldCourse9.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    if ((comboBoxStartHourInterval10.Text != "" && comboBoxStartMinuteInterval10.Text != "" && comboBoxStartFormatInterval10.Text != "") &&
-                        (comboBoxStopHourInterval10.Text != "" && comboBoxStopMinuteInterval10.Text != "" && comboBoxStopFormatInterval10.Text != "") &&
-                        (checkBoxEntranceTone10.Checked == false || checkBoxEntranceTone10.Checked == true) &&
-                        (checkBoxExitTone10.Checked == false || checkBoxExitTone10.Checked == true) &&
-                        (checkBoxHoldMusic10.Checked == false || checkBoxHoldMusic10.Checked == true) &&
-                        (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
-                        (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
-                    {
-                        IntervalsAndChecksPrimary IntervalsAndChecksPrimaryObject = new IntervalsAndChecksPrimary()
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval10.Text != "" && comboBoxStartMinuteInterval10.Text != "" && comboBoxStartFormatInterval10.Text != "") &&
+                            (comboBoxStopHourInterval10.Text != "" && comboBoxStopMinuteInterval10.Text != "" && comboBoxStopFormatInterval10.Text != "") &&
+                            (checkBoxEntranceTone10.Checked == false || checkBoxEntranceTone10.Checked == true) &&
+                            (checkBoxExitTone10.Checked == false || checkBoxExitTone10.Checked == true) &&
+                            (checkBoxHoldMusic10.Checked == false || checkBoxHoldMusic10.Checked == true) &&
+                            (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
+                            (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
                         {
-                            Id = 70,
-                            Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
-                            Stop = comboBoxStopHourInterval10.Text + ":" + comboBoxStopMinuteInterval10.Text + ":" + "00" + " " + comboBoxStopFormatInterval10.Text,
-                            EntranceTone = checkBoxEntranceTone10.Checked,
-                            ExitTone = checkBoxExitTone10.Checked,
-                            HoldMusic = checkBoxHoldMusic10.Checked,
-                            HoldOn = checkBoxHoldOn10.Checked,
-                            HoldCourse = checkBoxHoldCourse10.Checked
-                        };
-                        IntervalsAndChecksPrimary.Add(IntervalsAndChecksPrimaryObject);
-                        sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksPrimary" +
-                            " set " + "Start" + " = " + "@Start" + ", " +
-                                      "Stop" + " = " + "@Stop" + ", " +
-                                      "ExitTone" + " = " + "@ExitTone" + ", " +
-                                      "EntranceTone" + " = " + "@EntranceTone" + ", " +
-                                      "HoldMusic" + " = " + "@HoldMusic" + ", " +
-                                      "HoldOn" + " = " + "@HoldOn" + ", " +
-                                      "HoldCourse" + " = " + "@HoldCourse " +
-                                      "where Id = " + "@Id" + ";", sqliteConnection);
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 60,
+                                Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
+                                Stop = comboBoxStopHourInterval10.Text + ":" + comboBoxStopMinuteInterval10.Text + ":" + "00" + " " + comboBoxStopFormatInterval10.Text,
+                                EntranceTone = checkBoxEntranceTone10.Checked,
+                                ExitTone = checkBoxExitTone10.Checked,
+                                HoldMusic = checkBoxHoldMusic10.Checked,
+                                HoldOn = checkBoxHoldOn10.Checked,
+                                HoldCourse = checkBoxHoldCourse10.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                        sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksPrimaryObject.Id;
-                        sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksPrimaryObject.Start;
-                        sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksPrimaryObject.Stop;
-                        sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksPrimaryObject.ExitTone;
-                        sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksPrimaryObject.EntranceTone;
-                        sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksPrimaryObject.HoldMusic;
-                        sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksPrimaryObject.HoldOn;
-                        sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksPrimaryObject.HoldCourse;
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        sqliteCommand.ExecuteNonQuery();
-                    }
-                    break;
-            }
-        }
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        break;
 
-        public void UpdateIntervalsAndChecksPrimaryForACertainCycleAndDayInDatabase()
-        {
-            // 1. Colectăm toate seturile de controale într-o listă
-            var allIntervals = new List<IntervalControl>
-            {
-                //new IntervalControls { Id = 1, StartH = comboBoxStartHourInterval1, StartM = comboBoxStartMinuteInterval1, StartF = comboBoxStartFormatInterval1, StopH = comboBoxStopHourInterval1, StopM = comboBoxStopMinuteInterval1, StopF = comboBoxStopFormatInterval1, Entrance = checkBoxEntranceTone1, Exit = checkBoxExitTone1, Music = checkBoxHoldMusic1, HoldOn = checkBoxHoldOn1, HoldCourse = checkBoxHoldCourse1 },
-                //new IntervalControls { Id = 2, StartH = comboBoxStartHourInterval2, ... }, // repeta pentru restul
-                //// ... restul de 8 sau 10 intervale
-            };
+                    case "Duminica":
+                        if ((comboBoxStartHourInterval1.Text != "" && comboBoxStartMinuteInterval1.Text != "" && comboBoxStartFormatInterval1.Text != "") &&
+                        (comboBoxStopHourInterval1.Text != "" && comboBoxStopMinuteInterval1.Text != "" && comboBoxStopFormatInterval1.Text != "") &&
+                        (checkBoxExitTone1.Checked == false || checkBoxExitTone1.Checked == true) &&
+                        (checkBoxEntranceTone1.Checked == false || checkBoxEntranceTone1.Checked == true) &&
+                        (checkBoxHoldMusic1.Checked == false || checkBoxHoldMusic1.Checked == true) &&
+                        (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
+                        (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
+                        {
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 61,
+                                Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
+                                Stop = comboBoxStopHourInterval1.Text + ":" + comboBoxStopMinuteInterval1.Text + ":" + "00" + " " + comboBoxStopFormatInterval1.Text,
+                                EntranceTone = checkBoxEntranceTone1.Checked,
+                                ExitTone = checkBoxExitTone1.Checked,
+                                HoldMusic = checkBoxHoldMusic1.Checked,
+                                HoldOn = checkBoxHoldOn1.Checked,
+                                HoldCourse = checkBoxHoldCourse1.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-            using (var connection = new SqliteConnection($"Data Source={GetDatabasePath()}"))
-            {
-                connection.Open();
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                foreach (var interval in allIntervals)
-                {
-                    // Validăm dacă intervalul este completat
-                    if (string.IsNullOrEmpty(interval.StartHour.Text) || string.IsNullOrEmpty(interval.StopHour.Text))
-                        continue;
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval2.Text != "" && comboBoxStartMinuteInterval2.Text != "" && comboBoxStartFormatInterval2.Text != "") &&
+                            (comboBoxStopHourInterval2.Text != "" && comboBoxStopMinuteInterval2.Text != "" && comboBoxStopFormatInterval2.Text != "") &&
+                            (checkBoxEntranceTone2.Checked == false || checkBoxEntranceTone2.Checked == true) &&
+                            (checkBoxExitTone2.Checked == false || checkBoxExitTone2.Checked == true) &&
+                            (checkBoxHoldMusic2.Checked == false || checkBoxHoldMusic2.Checked == true) &&
+                            (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
+                            (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
+                        {
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 62,
+                                Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
+                                Stop = comboBoxStopHourInterval2.Text + ":" + comboBoxStopMinuteInterval2.Text + ":" + "00" + " " + comboBoxStopFormatInterval2.Text,
+                                EntranceTone = checkBoxEntranceTone2.Checked,
+                                ExitTone = checkBoxExitTone2.Checked,
+                                HoldMusic = checkBoxHoldMusic2.Checked,
+                                HoldOn = checkBoxHoldOn2.Checked,
+                                HoldCourse = checkBoxHoldCourse2.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                    string startTime = $"{interval.StartHour.Text}:{interval.StartMinute.Text}:00 {interval.StartFormat.Text}";
-                    string stopTime = $"{interval.StopHour.Text}:{interval.StopMinute.Text}:00 {interval.StopFormat.Text}";
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                    string sql = @"UPDATE TimeInterval SET 
-                           Start = @Start, Stop = @Stop, ExitTone = @ExitTone, 
-                           EntranceTone = @EntranceTone, HoldMusic = @HoldMusic, HoldOn = @HoldOn, HoldCourse = @HoldCourse 
-                           WHERE CycleId = @CycleId AND DayId = @DayId";
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval3.Text != "" && comboBoxStartMinuteInterval3.Text != "" && comboBoxStartFormatInterval3.Text != "") &&
+                            (comboBoxStopHourInterval3.Text != "" && comboBoxStopMinuteInterval3.Text != "" && comboBoxStopFormatInterval3.Text != "") &&
+                            (checkBoxEntranceTone3.Checked == false || checkBoxEntranceTone3.Checked == true) &&
+                            (checkBoxExitTone3.Checked == false || checkBoxExitTone3.Checked == true) &&
+                            (checkBoxHoldMusic3.Checked == false || checkBoxHoldMusic3.Checked == true) &&
+                            (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
+                            (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
+                        {
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 63,
+                                Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
+                                Stop = comboBoxStopHourInterval3.Text + ":" + comboBoxStopMinuteInterval3.Text + ":" + "00" + " " + comboBoxStopFormatInterval3.Text,
+                                EntranceTone = checkBoxEntranceTone3.Checked,
+                                ExitTone = checkBoxExitTone3.Checked,
+                                HoldMusic = checkBoxHoldMusic3.Checked,
+                                HoldOn = checkBoxHoldOn3.Checked,
+                                HoldCourse = checkBoxHoldCourse3.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
 
-                    using (var cmd = new SqliteCommand(sql, connection))
-                    {
-                        cmd.Parameters.AddWithValue("@CycleId", 0); // 0 pentru Primar
-                        cmd.Parameters.AddWithValue("@DayId", interval.DayId);
-                        cmd.Parameters.AddWithValue("@Start", startTime);
-                        cmd.Parameters.AddWithValue("@Stop", stopTime);
-                        cmd.Parameters.AddWithValue("@ExitTone", interval.ExitTone.Checked ? 1 : 0);
-                        cmd.Parameters.AddWithValue("@EntranceTone", interval.EntranceTone.Checked ? 1 : 0);
-                        cmd.Parameters.AddWithValue("@HoldMusic", interval.HoldMusic.Checked ? 1 : 0);
-                        cmd.Parameters.AddWithValue("@HoldOn", interval.HoldOn.Checked ? 1 : 0);
-                        cmd.Parameters.AddWithValue("@HoldCourse", interval.HoldCourse.Checked ? 1 : 0);
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
-                        cmd.ExecuteNonQuery();
-                    }
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval4.Text != "" && comboBoxStartMinuteInterval4.Text != "" && comboBoxStartFormatInterval4.Text != "") &&
+                            (comboBoxStopHourInterval4.Text != "" && comboBoxStopMinuteInterval4.Text != "" && comboBoxStopFormatInterval4.Text != "") &&
+                            (checkBoxEntranceTone4.Checked == false || checkBoxEntranceTone4.Checked == true) &&
+                            (checkBoxExitTone4.Checked == false || checkBoxExitTone4.Checked == true) &&
+                            (checkBoxHoldMusic4.Checked == false || checkBoxHoldMusic4.Checked == true) &&
+                            (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
+                            (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
+                        {
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 64,
+                                Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
+                                Stop = comboBoxStopHourInterval4.Text + ":" + comboBoxStopMinuteInterval4.Text + ":" + "00" + " " + comboBoxStopFormatInterval4.Text,
+                                EntranceTone = checkBoxEntranceTone4.Checked,
+                                ExitTone = checkBoxExitTone4.Checked,
+                                HoldMusic = checkBoxHoldMusic4.Checked,
+                                HoldOn = checkBoxHoldOn4.Checked,
+                                HoldCourse = checkBoxHoldCourse4.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
+
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
+
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval5.Text != "" && comboBoxStartMinuteInterval5.Text != "" && comboBoxStartFormatInterval5.Text != "") &&
+                            (comboBoxStopHourInterval5.Text != "" && comboBoxStopMinuteInterval5.Text != "" && comboBoxStopFormatInterval5.Text != "") &&
+                            (checkBoxEntranceTone5.Checked == false || checkBoxEntranceTone5.Checked == true) &&
+                            (checkBoxExitTone5.Checked == false || checkBoxExitTone5.Checked == true) &&
+                            (checkBoxHoldMusic5.Checked == false || checkBoxHoldMusic5.Checked == true) &&
+                            (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
+                            (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
+                        {
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 65,
+                                Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
+                                Stop = comboBoxStopHourInterval5.Text + ":" + comboBoxStopMinuteInterval5.Text + ":" + "00" + " " + comboBoxStopFormatInterval5.Text,
+                                EntranceTone = checkBoxEntranceTone5.Checked,
+                                ExitTone = checkBoxExitTone5.Checked,
+                                HoldMusic = checkBoxHoldMusic5.Checked,
+                                HoldOn = checkBoxHoldOn5.Checked,
+                                HoldCourse = checkBoxHoldCourse5.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
+
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
+
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval6.Text != "" && comboBoxStartMinuteInterval6.Text != "" && comboBoxStartFormatInterval6.Text != "") &&
+                            (comboBoxStopHourInterval6.Text != "" && comboBoxStopMinuteInterval6.Text != "" && comboBoxStopFormatInterval6.Text != "") &&
+                            (checkBoxEntranceTone6.Checked == false || checkBoxEntranceTone6.Checked == true) &&
+                            (checkBoxExitTone6.Checked == false || checkBoxExitTone6.Checked == true) &&
+                            (checkBoxHoldMusic6.Checked == false || checkBoxHoldMusic6.Checked == true) &&
+                            (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
+                            (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
+                        {
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 66,
+                                Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
+                                Stop = comboBoxStopHourInterval6.Text + ":" + comboBoxStopMinuteInterval6.Text + ":" + "00" + " " + comboBoxStopFormatInterval6.Text,
+                                EntranceTone = checkBoxEntranceTone6.Checked,
+                                ExitTone = checkBoxExitTone6.Checked,
+                                HoldMusic = checkBoxHoldMusic6.Checked,
+                                HoldOn = checkBoxHoldOn6.Checked,
+                                HoldCourse = checkBoxHoldCourse6.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
+
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
+
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval7.Text != "" && comboBoxStartMinuteInterval7.Text != "" && comboBoxStartFormatInterval7.Text != "") &&
+                            (comboBoxStopHourInterval7.Text != "" && comboBoxStopMinuteInterval7.Text != "" && comboBoxStopFormatInterval7.Text != "") &&
+                            (checkBoxEntranceTone7.Checked == false || checkBoxEntranceTone7.Checked == true) &&
+                            (checkBoxExitTone7.Checked == false || checkBoxExitTone7.Checked == true) &&
+                            (checkBoxHoldMusic7.Checked == false || checkBoxHoldMusic7.Checked == true) &&
+                            (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
+                            (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
+                        {
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 67,
+                                Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
+                                Stop = comboBoxStopHourInterval7.Text + ":" + comboBoxStopMinuteInterval7.Text + ":" + "00" + " " + comboBoxStopFormatInterval7.Text,
+                                EntranceTone = checkBoxEntranceTone7.Checked,
+                                ExitTone = checkBoxExitTone7.Checked,
+                                HoldMusic = checkBoxHoldMusic7.Checked,
+                                HoldOn = checkBoxHoldOn7.Checked,
+                                HoldCourse = checkBoxHoldCourse7.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
+
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
+
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval8.Text != "" && comboBoxStartMinuteInterval8.Text != "" && comboBoxStartFormatInterval8.Text != "") &&
+                            (comboBoxStopHourInterval8.Text != "" && comboBoxStopMinuteInterval8.Text != "" && comboBoxStopFormatInterval8.Text != "") &&
+                            (checkBoxEntranceTone8.Checked == false || checkBoxEntranceTone8.Checked == true) &&
+                            (checkBoxExitTone8.Checked == false || checkBoxExitTone8.Checked == true) &&
+                            (checkBoxHoldMusic8.Checked == false || checkBoxHoldMusic8.Checked == true) &&
+                            (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
+                            (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
+                        {
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 68,
+                                Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
+                                Stop = comboBoxStopHourInterval8.Text + ":" + comboBoxStopMinuteInterval8.Text + ":" + "00" + " " + comboBoxStopFormatInterval8.Text,
+                                EntranceTone = checkBoxEntranceTone8.Checked,
+                                ExitTone = checkBoxExitTone8.Checked,
+                                HoldMusic = checkBoxHoldMusic8.Checked,
+                                HoldOn = checkBoxHoldOn8.Checked,
+                                HoldCourse = checkBoxHoldCourse8.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
+
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
+
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval9.Text != "" && comboBoxStartMinuteInterval9.Text != "" && comboBoxStartFormatInterval9.Text != "") &&
+                            (comboBoxStopHourInterval9.Text != "" && comboBoxStopMinuteInterval9.Text != "" && comboBoxStopFormatInterval9.Text != "") &&
+                            (checkBoxEntranceTone9.Checked == false || checkBoxEntranceTone9.Checked == true) &&
+                            (checkBoxExitTone9.Checked == false || checkBoxExitTone9.Checked == true) &&
+                            (checkBoxHoldMusic9.Checked == false || checkBoxHoldMusic9.Checked == true) &&
+                            (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
+                            (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
+                        {
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 69,
+                                Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
+                                Stop = comboBoxStopHourInterval9.Text + ":" + comboBoxStopMinuteInterval9.Text + ":" + "00" + " " + comboBoxStopFormatInterval9.Text,
+                                EntranceTone = checkBoxEntranceTone9.Checked,
+                                ExitTone = checkBoxExitTone9.Checked,
+                                HoldMusic = checkBoxHoldMusic9.Checked,
+                                HoldOn = checkBoxHoldOn9.Checked,
+                                HoldCourse = checkBoxHoldCourse9.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
+
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
+
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        if ((comboBoxStartHourInterval10.Text != "" && comboBoxStartMinuteInterval10.Text != "" && comboBoxStartFormatInterval10.Text != "") &&
+                            (comboBoxStopHourInterval10.Text != "" && comboBoxStopMinuteInterval10.Text != "" && comboBoxStopFormatInterval10.Text != "") &&
+                            (checkBoxEntranceTone10.Checked == false || checkBoxEntranceTone10.Checked == true) &&
+                            (checkBoxExitTone10.Checked == false || checkBoxExitTone10.Checked == true) &&
+                            (checkBoxHoldMusic10.Checked == false || checkBoxHoldMusic10.Checked == true) &&
+                            (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
+                            (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
+                        {
+                            TimeInterval TimeIntervalObject = new TimeInterval()
+                            {
+                                Id = 70,
+                                Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
+                                Stop = comboBoxStopHourInterval10.Text + ":" + comboBoxStopMinuteInterval10.Text + ":" + "00" + " " + comboBoxStopFormatInterval10.Text,
+                                EntranceTone = checkBoxEntranceTone10.Checked,
+                                ExitTone = checkBoxExitTone10.Checked,
+                                HoldMusic = checkBoxHoldMusic10.Checked,
+                                HoldOn = checkBoxHoldOn10.Checked,
+                                HoldCourse = checkBoxHoldCourse10.Checked
+                            };
+                            TimeInterval.Add(TimeIntervalObject);
+                            sqliteCommand = new SqliteCommand(
+                                "update TimeInterval" +
+                                " set " + "Start" + " = " + "@Start" + ", " +
+                                          "Stop" + " = " + "@Stop" + ", " +
+                                          "ExitTone" + " = " + "@ExitTone" + ", " +
+                                          "EntranceTone" + " = " + "@EntranceTone" + ", " +
+                                          "HoldMusic" + " = " + "@HoldMusic" + ", " +
+                                          "HoldOn" + " = " + "@HoldOn" + ", " +
+                                          "HoldCourse" + " = " + "@HoldCourse " +
+                                          "where Id = " + "@Id" + ";", sqliteConnection);
+
+                            sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
+                            sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
+                            sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
+                            sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
+                            sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
+                            sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
+                            sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
+                            sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
+                            sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
+                            sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
+                            sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
+                            sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
+                            sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
+
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+                        break;
                 }
             }
-            MessageBox.Show("Datele au fost salvate cu succes!");
+
+            PopulateIntervalsAndChecksSelectingDay();
         }
+
+        //public void UpdateIntervalsAndChecksPrimaryForACertainCycleAndDayInDatabase()
+        //{
+        //    // 1. Colectăm toate seturile de controale într-o listă
+        //    var allIntervals = new List<IntervalControl>
+        //    {
+        //        //new IntervalControls { Id = 1, StartH = comboBoxStartHourInterval1, StartM = comboBoxStartMinuteInterval1, StartF = comboBoxStartFormatInterval1, StopH = comboBoxStopHourInterval1, StopM = comboBoxStopMinuteInterval1, StopF = comboBoxStopFormatInterval1, Entrance = checkBoxEntranceTone1, Exit = checkBoxExitTone1, Music = checkBoxHoldMusic1, HoldOn = checkBoxHoldOn1, HoldCourse = checkBoxHoldCourse1 },
+        //        //new IntervalControls { Id = 2, StartH = comboBoxStartHourInterval2, ... }, // repeta pentru restul
+        //        //// ... restul de 8 sau 10 intervale
+        //    };
+
+        //    using (var connection = new SqliteConnection($"Data Source={GetDatabasePath()}"))
+        //    {
+        //        connection.Open();
+
+        //        foreach (var interval in allIntervals)
+        //        {
+        //            // Validăm dacă intervalul este completat
+        //            if (string.IsNullOrEmpty(interval.StartHour.Text) || string.IsNullOrEmpty(interval.StopHour.Text))
+        //                continue;
+
+        //            string startTime = $"{interval.StartHour.Text}:{interval.StartMinute.Text}:00 {interval.StartFormat.Text}";
+        //            string stopTime = $"{interval.StopHour.Text}:{interval.StopMinute.Text}:00 {interval.StopFormat.Text}";
+
+        //            string sql = @"UPDATE TimeInterval SET 
+        //                   Start = @Start, Stop = @Stop, ExitTone = @ExitTone, 
+        //                   EntranceTone = @EntranceTone, HoldMusic = @HoldMusic, HoldOn = @HoldOn, HoldCourse = @HoldCourse 
+        //                   WHERE CycleId = @CycleId AND DayId = @DayId";
+
+        //            using (var cmd = new SqliteCommand(sql, connection))
+        //            {
+        //                cmd.Parameters.AddWithValue("@CycleId", 0); // 0 pentru Primar
+        //                cmd.Parameters.AddWithValue("@DayId", interval.DayId);
+        //                cmd.Parameters.AddWithValue("@Start", startTime);
+        //                cmd.Parameters.AddWithValue("@Stop", stopTime);
+        //                cmd.Parameters.AddWithValue("@ExitTone", interval.ExitTone.Checked ? 1 : 0);
+        //                cmd.Parameters.AddWithValue("@EntranceTone", interval.EntranceTone.Checked ? 1 : 0);
+        //                cmd.Parameters.AddWithValue("@HoldMusic", interval.HoldMusic.Checked ? 1 : 0);
+        //                cmd.Parameters.AddWithValue("@HoldOn", interval.HoldOn.Checked ? 1 : 0);
+        //                cmd.Parameters.AddWithValue("@HoldCourse", interval.HoldCourse.Checked ? 1 : 0);
+
+        //                cmd.ExecuteNonQuery();
+        //            }
+        //        }
+        //    }
+        //    MessageBox.Show("Datele au fost salvate cu succes!");
+        //}
 
         private string GetDatabasePath()
         {
@@ -3991,7 +3994,7 @@ namespace ClassBellProject.Primary
                 connection.Open();
 
                 // Construim SQL-ul dinamic în funcție de filtre
-                string sql = "SELECT * FROM TimeInterval WHERE 1=1";
+                string sql = "SELECT * FROM TimeInterval WHERE 1 = 1";
                 if (cycleId.HasValue) sql += " AND CycleId = @cycleId";
                 if (dayId.HasValue) sql += " AND DayId = @dayId";
 
@@ -4026,65 +4029,6 @@ namespace ClassBellProject.Primary
         }
 
         public void PopulateIntervalsAndChecksSelectingDay()
-        {
-            List<TimeInterval> intervals = GetIntervalsAndChecksFromDatabase();
-            string selectedDay = listBoxSelectDayPrimary.SelectedItem.ToString();
-
-            // 1. Calculăm indexul de start în listă (Luni: 0, Marți: 10, Miercuri: 20...)
-            int startIndex = GetDayStartIndex(selectedDay);
-            if (startIndex == -1) return;
-
-            // 2. Parcurgem cele 10 intervale ale zilei respective
-            for (int i = 0; i < 10; i++)
-            {
-                int dbIndex = startIndex + i;
-                if (dbIndex >= intervals.Count) break;
-
-                var currentInterval = intervals[dbIndex];
-
-                if (!string.IsNullOrEmpty(currentInterval.Start) && !string.IsNullOrEmpty(currentInterval.Stop))
-                {
-                    // Populare START
-                    string[] startParts = currentInterval.Start.Split(' '); // [0] = "08:30", [1] = "AM"
-                    string[] startTime = startParts[0].Split(':');
-                    comboStartHours[i].SelectedItem = startTime[0];
-                    comboStartMinutes[i].SelectedItem = startTime[1];
-                    comboStartFormats[i].SelectedItem = startParts[1];
-
-                    // Populare STOP
-                    string[] stopParts = currentInterval.Stop.Split(' ');
-                    string[] stopTime = stopParts[0].Split(':');
-                    comboStopHours[i].SelectedItem = stopTime[0];
-                    comboStopMinutes[i].SelectedItem = stopTime[1];
-                    comboStopFormats[i].SelectedItem = stopParts[1];
-
-                    // Populare CheckBox-uri
-                    checkExitTones[i].Checked = currentInterval.ExitTone;
-                    checkEntranceTones[i].Checked = currentInterval.EntranceTone;
-                    checkHoldMusics[i].Checked = currentInterval.HoldMusic;
-                    checkBoxHoldOn[i].Checked = currentInterval.HoldOn;
-                    checkHoldCourses[i].Checked = currentInterval.HoldCourse;
-                }
-            }
-        }
-
-        // Metodă ajutătoare pentru a scăpa de Switch-ul uriaș
-        private int GetDayStartIndex(string day)
-        {
-            switch (day)
-            {
-                case "Luni": return 0;
-                case "Marti": return 10;
-                case "Miercuri": return 20;
-                case "Joi": return 30;
-                case "Vineri": return 40;
-                case "Sambata": return 50;
-                case "Duminica": return 60;
-                default: return -1;
-            }
-        }
-
-        public void PopulateIntervalsAndChecksSelectingDay2()
         {
             string dayChecked = string.Empty;
 
@@ -5513,7 +5457,7 @@ namespace ClassBellProject.Primary
 
         private void buttonUpdateIntervalsAndChecksForACertainDay_Click(object sender, EventArgs e)
         {
-            UpdateIntervalsAndChecksPrimaryForACertainCycleAndDayInDatabase();
+            UpdateIntervalsAndChecksPrimaryForACertainDayInDatabase();
         }
     }
 }
