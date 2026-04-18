@@ -96,9 +96,29 @@ namespace ClassBellProject.Primary
             "59"
         };
 
+        // Liste pentru a accesa controalele prin index (0-9)
+        private List<ComboBox> comboStartHours;
+        private List<ComboBox> comboStartMinutes;
+        private List<ComboBox> comboStartFormats;
+        private List<ComboBox> comboStopHours;
+        private List<ComboBox> comboStopMinutes;
+        private List<ComboBox> comboStopFormats;
+        private List<CheckBox> checkExitTones;
+        private List<CheckBox> checkEntranceTones;
+        private List<CheckBox> checkHoldMusics;
+        private List<CheckBox> checkHoldCourses;
+
+        // Inițializează-le în Constructorul clasei după InitializeComponent();
+        private void InitializeControlLists()
+        {
+            //comboStartHours = new List<ComboBox> { comboBoxStartHourInterval1, comboBoxStartHourInterval2, ... comboBoxStartHourInterval10 };
+            //// Repetă pentru toate celelalte tipuri (Minutes, Formats, CheckBox-uri)
+        }
+
         public PrimaryMainWindow()
         {
             InitializeComponent();
+            InitializeControlLists();
             foreach (string format in formats)
             {
                 comboBoxStartFormatInterval1.Items.Add(format);
@@ -200,28 +220,47 @@ namespace ClassBellProject.Primary
                           .ToList();
         }
 
+        // Această variabilă trebuie să fie declarată în afara metodei, 
+        // ca membru al clasei, pentru a-și păstra valoarea între apeluri.
+        private DateTime _lastRunDatePrimary = DateTime.MinValue;
+
         public async Task StartSongsAndTonesPrimaryAsync(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
             {
-                string today = DateTime.Now.DayOfWeek.ToString();
+                DateTime now = DateTime.Now;
+                string today = now.DayOfWeek.ToString();
                 List<string> daysSelected = GetDaysSelectedForPrimary();
 
-                if (daysSelected.Contains(today))
+                if (daysSelected.Contains(today) && _lastRunDatePrimary.Date != now.Date)
                 {
-                    // Luăm toate intervalele zilei curente
-                    var intervalsAndChecksFromDatabase = GetIntervalsAndChecksFromDatabase(0, (int)DateTime.Now.DayOfWeek);
+                    var intervals = GetIntervalsAndChecksFromDatabase(0, (int)now.DayOfWeek);
+
+                    // Găsim ora de sfârșit a ultimului interval din zi
+                    var lastInterval = intervals.LastOrDefault();
+                    DateTime lastTodayHour = lastInterval != null ? DateTime.Parse(lastInterval.Stop) : DateTime.MinValue;
+
+                    // Dacă am depășit ora ultimului interval, marcăm ziua ca terminată
+                    if (now > lastTodayHour && intervals.Any())
+                    {
+                        _lastRunDatePrimary = now.Date;
+                        await Task.Delay(TimeSpan.FromMinutes(30), token);
+                        continue;
+                    }
+
                     int[] shuffleSongs = ShuffleAllSongsPrimary();
                     int songCursor = 0;
 
-                    // PARCURGEM FIECARE INTERVAL (în loc de if-uri repetate)
-                    foreach (var interval in intervalsAndChecksFromDatabase)
+                    foreach (var interval in intervals)
                     {
                         if (token.IsCancellationRequested) break;
                         if (string.IsNullOrEmpty(interval.Start) || string.IsNullOrEmpty(interval.Stop)) continue;
 
                         DateTime start = DateTime.Parse(interval.Start);
                         DateTime stop = DateTime.Parse(interval.Stop);
+
+                        // Sărim peste intervalele care au trecut deja (ex: la restart aplicație la prânz)
+                        if (now > stop) continue;
 
                         // 1. AȘTEPTARE PÂNĂ LA START (Dacă e cazul)
                         while (DateTime.Now < start && !token.IsCancellationRequested)
@@ -261,66 +300,60 @@ namespace ClassBellProject.Primary
                             await StartAToneByPositionPrimaryAsync(0);
                         }
                     }
-                }
-
-                // După ce terminăm toate intervalele zilei, așteptăm un minut înainte să verificăm ziua următoare
-                // sau lăsăm bucla să pulseze rar până se schimbă ziua
-                await Task.Delay(10000, token);
-            }
-        }
-
-        public string[] GetAllTonesPrimary()
-        {
-            string[] names = Directory.GetCurrentDirectory().Split("\\");
-            string namesComposed = string.Empty;
-            foreach (string name in names)
-            {
-                if (!name.Contains("ClassBell"))
-                {
-                    namesComposed += name + "\\";
+                    // OPȚIONAL: După ce foreach-ul se termină natural (s-au parcurs toate intervalele)
+                    // marcăm ziua ca fiind executată complet.
+                    _lastRunDatePrimary = DateTime.Today;
                 }
                 else
                 {
-                    namesComposed += name + "\\" + "Tones Primary";
-                    break;
+                    // Dacă am terminat pe azi sau nu e zi de primar, "dormim" mai mult
+                    // Verificăm rar (la 30 min) dacă s-a schimbat ziua
+                    await Task.Delay(TimeSpan.FromMinutes(30), token);
                 }
-            }
-            string[] files = Directory.GetFiles(namesComposed);
 
-            return files;
+                // O mică pauză de siguranță pentru bucla principală
+                await Task.Delay(1000, token);
+            }
         }
 
-        public string[] GetAllSongsPrimary()
+        private string[] GetFilesFromFolder(string folderName)
         {
-            string[] names = Directory.GetCurrentDirectory().Split("\\");
-            string namesComposed = string.Empty;
-            foreach (string name in names)
-            {
-                if (!name.Contains("ClassBell"))
-                {
-                    namesComposed += name + "\\";
-                }
-                else
-                {
-                    namesComposed += name + "\\" + "Songs Primary";
-                    break;
-                }
-            }
-            string[] files = Directory.GetFiles(namesComposed);
+            // Aceasta este calea FIXĂ a folderului unde este instalată aplicația
+            string basePath = AppDomain.CurrentDomain.BaseDirectory;
 
-            return files;
+            // Curățăm calea pentru a găsi folderul rădăcină "ClassBell"
+            // Dacă după publish folderul "Tones Primary" este direct lângă .exe, 
+            // nu mai avem nevoie de logica cu IndexOf("ClassBell")
+
+            string rootPath = basePath;
+            if (basePath.Contains("ClassBell"))
+            {
+                rootPath = basePath.Substring(0, basePath.IndexOf("ClassBell") + "ClassBell".Length);
+            }
+
+            // Construim calea finală
+            string finalPath = Path.Combine(rootPath, folderName);
+
+            if (!Directory.Exists(finalPath))
+            {
+                // Debug: Te ajută să vezi în consolă unde caută de fapt aplicația
+                Console.WriteLine($"Eroare: Folderul nu a fost găsit la calea: {finalPath}");
+                return Array.Empty<string>();
+            }
+
+            return Directory.GetFiles(finalPath);
         }
 
         public async Task StartASongByPositionAndTimePrimaryAsync(int position, DateTime dateTime)
         {
-            string[] songsPrimary = GetAllSongsPrimary();
+            string[] songsPrimary = GetFilesFromFolder("Songs Primary");
             soundPlayerForASongPrimary.SoundLocation = songsPrimary[position];
             soundPlayerForASongPrimary.Play();
         }
 
         public async Task StartAToneByPositionPrimaryAsync(int position)
         {
-            string[] tonesPrimary = GetAllTonesPrimary();
+            string[] tonesPrimary = GetFilesFromFolder("Tones Primary");
             soundPlayerForATonePrimary.SoundLocation = tonesPrimary[position];
             soundPlayerForATonePrimary.Play();
         }
@@ -329,7 +362,7 @@ namespace ClassBellProject.Primary
 
         public int[] ShuffleAllSongsPrimary()
         {
-            string[] songsPrimary = GetAllSongsPrimary();
+            string[] songsPrimary = GetFilesFromFolder("Songs Primary");
             int[] songsPositions = Enumerable.Range(0, songsPrimary.Length).ToArray();
             int length = songsPrimary.Length;
 
@@ -3990,9 +4023,69 @@ namespace ClassBellProject.Primary
             return timeIntervals;
         }
 
+        public void PopulateIntervalsAndChecksSelectingDay()
+        {
+            List<TimeInterval> intervals = GetIntervalsAndChecksFromDatabase();
+            string selectedDay = listBoxSelectDayPrimary.SelectedItem.ToString();
+
+            // 1. Calculăm indexul de start în listă (Luni: 0, Marți: 10, Miercuri: 20...)
+            int startIndex = GetDayStartIndex(selectedDay);
+            if (startIndex == -1) return;
+
+            // 2. Parcurgem cele 10 intervale ale zilei respective
+            for (int i = 0; i < 10; i++)
+            {
+                int dbIndex = startIndex + i;
+                if (dbIndex >= intervals.Count) break;
+
+                var currentInterval = intervals[dbIndex];
+
+                if (!string.IsNullOrEmpty(currentInterval.Start) && !string.IsNullOrEmpty(currentInterval.Stop))
+                {
+                    // Populare START
+                    string[] startParts = currentInterval.Start.Split(' '); // [0] = "08:30", [1] = "AM"
+                    string[] startTime = startParts[0].Split(':');
+
+                    comboStartHours[i].SelectedItem = startTime[0];
+                    comboStartMinutes[i].SelectedItem = startTime[1];
+                    comboStartFormats[i].SelectedItem = startParts[1];
+
+                    // Populare STOP
+                    string[] stopParts = currentInterval.Stop.Split(' ');
+                    string[] stopTime = stopParts[0].Split(':');
+
+                    comboStopHours[i].SelectedItem = stopTime[0];
+                    comboStopMinutes[i].SelectedItem = stopTime[1];
+                    comboStopFormats[i].SelectedItem = stopParts[1];
+
+                    // Populare CheckBox-uri
+                    checkExitTones[i].Checked = currentInterval.ExitTone;
+                    checkEntranceTones[i].Checked = currentInterval.EntranceTone;
+                    checkHoldMusics[i].Checked = currentInterval.HoldMusic;
+                    checkHoldCourses[i].Checked = currentInterval.HoldCourse;
+                }
+            }
+        }
+
+        // Metodă ajutătoare pentru a scăpa de Switch-ul uriaș
+        private int GetDayStartIndex(string day)
+        {
+            switch (day)
+            {
+                case "Luni": return 0;
+                case "Marti": return 10;
+                case "Miercuri": return 20;
+                case "Joi": return 30;
+                case "Vineri": return 40;
+                case "Sambata": return 50;
+                case "Duminica": return 60;
+                default: return -1;
+            }
+        }
+
         string dayChecked = string.Empty;
 
-        public void PopulateIntervalsAndChecksSelectingDay()
+        public void PopulateIntervalsAndChecksSelectingDay2()
         {
             List<TimeInterval> IntervalsAndChecksPrimary = GetIntervalsAndChecksFromDatabase();
 
