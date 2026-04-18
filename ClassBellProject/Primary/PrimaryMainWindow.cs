@@ -106,6 +106,7 @@ namespace ClassBellProject.Primary
         private List<CheckBox> checkExitTones;
         private List<CheckBox> checkEntranceTones;
         private List<CheckBox> checkHoldMusics;
+        private List<CheckBox> checkBoxHoldOn;
         private List<CheckBox> checkHoldCourses;
 
         // Inițializează-le în Constructorul clasei după InitializeComponent();
@@ -382,6 +383,8 @@ namespace ClassBellProject.Primary
 
         public void UpdateIntervalsAndChecksPrimaryForACertainDayInDatabase2()
         {
+            string dayChecked = string.Empty;
+
             string connectionString = @"Data Source=C:\Users\ComputerName\Desktop\ClassBellProject\ClassBellProjectDatabase.db;";
             SqliteConnection sqliteConnection = new SqliteConnection(connectionString);
             sqliteConnection.Open();
@@ -3991,7 +3994,6 @@ namespace ClassBellProject.Primary
                 string sql = "SELECT * FROM TimeInterval WHERE 1=1";
                 if (cycleId.HasValue) sql += " AND CycleId = @cycleId";
                 if (dayId.HasValue) sql += " AND DayId = @dayId";
-                sql += " ORDER BY Start ASC";
 
                 using (var command = new SqliteCommand(sql, connection))
                 {
@@ -4045,7 +4047,6 @@ namespace ClassBellProject.Primary
                     // Populare START
                     string[] startParts = currentInterval.Start.Split(' '); // [0] = "08:30", [1] = "AM"
                     string[] startTime = startParts[0].Split(':');
-
                     comboStartHours[i].SelectedItem = startTime[0];
                     comboStartMinutes[i].SelectedItem = startTime[1];
                     comboStartFormats[i].SelectedItem = startParts[1];
@@ -4053,7 +4054,6 @@ namespace ClassBellProject.Primary
                     // Populare STOP
                     string[] stopParts = currentInterval.Stop.Split(' ');
                     string[] stopTime = stopParts[0].Split(':');
-
                     comboStopHours[i].SelectedItem = stopTime[0];
                     comboStopMinutes[i].SelectedItem = stopTime[1];
                     comboStopFormats[i].SelectedItem = stopParts[1];
@@ -4062,6 +4062,7 @@ namespace ClassBellProject.Primary
                     checkExitTones[i].Checked = currentInterval.ExitTone;
                     checkEntranceTones[i].Checked = currentInterval.EntranceTone;
                     checkHoldMusics[i].Checked = currentInterval.HoldMusic;
+                    checkBoxHoldOn[i].Checked = currentInterval.HoldOn;
                     checkHoldCourses[i].Checked = currentInterval.HoldCourse;
                 }
             }
@@ -4083,10 +4084,10 @@ namespace ClassBellProject.Primary
             }
         }
 
-        string dayChecked = string.Empty;
-
         public void PopulateIntervalsAndChecksSelectingDay2()
         {
+            string dayChecked = string.Empty;
+
             List<TimeInterval> IntervalsAndChecksPrimary = GetIntervalsAndChecksFromDatabase();
 
             string[] startIntervalComponents;

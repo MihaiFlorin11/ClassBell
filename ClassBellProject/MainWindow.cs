@@ -35,57 +35,58 @@ namespace ClassBellProject
             return files;
         }
 
-        public string[] GetAllTonesGymnasium()
+        private string[] GetFilesFromFolder(string folderName)
         {
-            string[] names = Directory.GetCurrentDirectory().Split("\\");
-            string namesComposed = string.Empty;
-            foreach (string name in names)
+            // Aceasta este calea FIXĂ a folderului unde este instalată aplicația
+            string basePath = AppDomain.CurrentDomain.BaseDirectory;
+
+            // Curățăm calea pentru a găsi folderul rădăcină "ClassBell"
+            // Dacă după publish folderul "Tones Primary" este direct lângă .exe, 
+            // nu mai avem nevoie de logica cu IndexOf("ClassBell")
+
+            string rootPath = basePath;
+            if (basePath.Contains("ClassBell"))
             {
-                if (!name.Contains("ClassBell"))
-                {
-                    namesComposed += name + "\\";
-                }
-                else
-                {
-                    namesComposed += name + "\\" + "Tones Gymnasium";
-                    break;
-                }
+                rootPath = basePath.Substring(0, basePath.IndexOf("ClassBell") + "ClassBell".Length);
             }
-            string[] files = Directory.GetFiles(namesComposed);
 
-            return files;
+            // Construim calea finală
+            string finalPath = Path.Combine(rootPath, folderName);
+
+            if (!Directory.Exists(finalPath))
+            {
+                // Debug: Te ajută să vezi în consolă unde caută de fapt aplicația
+                Console.WriteLine($"Eroare: Folderul nu a fost găsit la calea: {finalPath}");
+                return Array.Empty<string>();
+            }
+
+            return Directory.GetFiles(finalPath);
         }
 
-        public double GetNumberOfSecondsOfATone(string toneLength)
-        {
-            FileInfo fileInfo = new FileInfo(toneLength);
-            int audioSampleRate = 44100;
-            int audioSampleSize = 16;
-            int channels = 2;
-            long file_size = fileInfo.Length;
-            double duration = file_size / (audioSampleRate * (audioSampleSize / 8.0) * channels);
+        //public double GetNumberOfSecondsOfATone(string toneLength)
+        //{
+        //    FileInfo fileInfo = new FileInfo(toneLength);
+        //    int audioSampleRate = 44100;
+        //    int audioSampleSize = 16;
+        //    int channels = 2;
+        //    long file_size = fileInfo.Length;
+        //    double duration = file_size / (audioSampleRate * (audioSampleSize / 8.0) * channels);
 
-            return duration;
-        }
+        //    return duration;
+        //}
 
         public async Task StartAToneByPositionPrimaryAsync(int position)
         {
-            string[] tonesPrimary = GetAllTonesPrimary();
+            string[] tonesPrimary = GetFilesFromFolder("Tones Primary");
             soundPlayerForATonePrimary.SoundLocation = tonesPrimary[position];
-            //double songDuration = GetNumberOfSecondsOfATone(tonesPrimary[position]);
-            //int Interval = (int)(songDuration * 1000);
             soundPlayerForATonePrimary.Play();
-            //await Task.Delay(1000);
         }
 
         public async Task StartAToneByPositionGymnasiumAsync(int position)
         {
-            string[] tonesGymnasium = GetAllTonesGymnasium();
+            string[] tonesGymnasium = GetFilesFromFolder("Tones Gymnasium");
             soundPlayerForAToneGymnasium.SoundLocation = tonesGymnasium[position];
-            //double songDuration = GetNumberOfSecondsOfATone(tonesGymnasium[position]);
-            //int Interval = (int)(songDuration * 1000);
             soundPlayerForAToneGymnasium.Play();
-            //await Task.Delay(1000);
         }
 
         private void buttonPrimary_Click(object sender, EventArgs e)
