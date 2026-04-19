@@ -437,7 +437,7 @@ namespace ClassBellProject.Primary
                     { "Duminica", 7 }
                 };
 
-                List<TimeInterval> intervalsAndChecksPrimary = GetIntervalsAndChecksFromDatabase(1, daysConversion[dayChecked]);
+                List<TimeInterval> intervalsAndChecksPrimary = GetIntervalsAndChecksFromDatabase(0, daysConversion[dayChecked]);
 
                 if (!string.IsNullOrEmpty(dayChecked))
                 {
@@ -1029,7 +1029,7 @@ namespace ClassBellProject.Primary
                 { "Duminica", 7 }
             };
 
-            List<TimeInterval> IntervalsAndChecksPrimary = GetIntervalsAndChecksFromDatabase(1, daysConversion[dayChecked]);
+            List<TimeInterval> IntervalsAndChecksPrimary = GetIntervalsAndChecksFromDatabase(0, daysConversion[dayChecked]);
 
             if (!string.IsNullOrEmpty(dayChecked))
             {
