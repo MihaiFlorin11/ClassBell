@@ -245,12 +245,12 @@ namespace ClassBellProject.Gymnasium
 
         // Această variabilă trebuie să fie declarată în afara metodei, 
         // ca membru al clasei, pentru a-și păstra valoarea între apeluri.
-        private DateTime _lastRunDatePrimary = DateTime.MinValue;
+        private DateTime _lastRunDateGymnasium = DateTime.MinValue;
 
         public async Task StartSongsAndTonesGymnasiumAsync(CancellationToken token)
         {
             // PASUL 1: Citirea inițială din DB la pornirea aplicației
-            _lastRunDatePrimary = GetLastRunDateFromDb("LastRunDateGymnasium");
+            _lastRunDateGymnasium = GetLastRunDateFromDb("LastRunDateGymnasium");
 
             while (!token.IsCancellationRequested)
             {
@@ -258,7 +258,7 @@ namespace ClassBellProject.Gymnasium
                 string today = now.DayOfWeek.ToString();
                 List<string> daysSelected = GetDaysSelectedForGymnasium();
 
-                if (daysSelected.Contains(today) && _lastRunDatePrimary.Date != now.Date)
+                if (daysSelected.Contains(today) && _lastRunDateGymnasium.Date != now.Date)
                 {
                     var intervals = GetIntervalsAndChecksFromDatabase(0, (int)now.DayOfWeek);
                     var lastInterval = intervals.Where(x => x.Start != "" && x.Stop != "").LastOrDefault();
@@ -268,10 +268,10 @@ namespace ClassBellProject.Gymnasium
                     // Dacă deschizi aplicația la ora 20:00 și programul s-a terminat la 18:00
                     if (now > lastTodayHour && intervals.Any())
                     {
-                        _lastRunDatePrimary = now.Date;
+                        _lastRunDateGymnasium = now.Date;
 
                         // SALVARE ÎN DB: Marcăm ziua ca procesată deși nu am cântat nimic (e prea târziu)
-                        UpdateLastRunDateInDb("LastRunDateGymnasium", _lastRunDatePrimary);
+                        UpdateLastRunDateInDb("LastRunDateGymnasium", _lastRunDateGymnasium);
 
                         await Task.Delay(TimeSpan.FromMinutes(30), token);
 
@@ -335,10 +335,10 @@ namespace ClassBellProject.Gymnasium
 
                     // PASUL 3: Finalizarea cu succes a zilei
                     // Aceasta este ramura normală unde programul s-a terminat natural
-                    _lastRunDatePrimary = DateTime.Today;
+                    _lastRunDateGymnasium = DateTime.Today;
 
                     // SALVARE ÎN DB: Ziua s-a încheiat cu succes
-                    UpdateLastRunDateInDb("LastRunDateGymnasium", _lastRunDatePrimary);
+                    UpdateLastRunDateInDb("LastRunDateGymnasium", _lastRunDateGymnasium);
                 }
                 else
                 {
