@@ -7,6 +7,90 @@ namespace ClassBellProject.Primary
 {
     public partial class PrimaryMainWindow : Form
     {
+        public PrimaryMainWindow()
+        {
+            InitializeComponent();
+
+            foreach (string format in formats)
+            {
+                comboBoxStartFormatInterval1.Items.Add(format);
+                comboBoxStartFormatInterval2.Items.Add(format);
+                comboBoxStartFormatInterval3.Items.Add(format);
+                comboBoxStartFormatInterval4.Items.Add(format);
+                comboBoxStartFormatInterval5.Items.Add(format);
+                comboBoxStartFormatInterval6.Items.Add(format);
+                comboBoxStartFormatInterval7.Items.Add(format);
+                comboBoxStartFormatInterval8.Items.Add(format);
+                comboBoxStartFormatInterval9.Items.Add(format);
+                comboBoxStartFormatInterval10.Items.Add(format);
+            }
+            foreach (string format in formats)
+            {
+                comboBoxStopFormatInterval1.Items.Add(format);
+                comboBoxStopFormatInterval2.Items.Add(format);
+                comboBoxStopFormatInterval3.Items.Add(format);
+                comboBoxStopFormatInterval4.Items.Add(format);
+                comboBoxStopFormatInterval5.Items.Add(format);
+                comboBoxStopFormatInterval6.Items.Add(format);
+                comboBoxStopFormatInterval7.Items.Add(format);
+                comboBoxStopFormatInterval8.Items.Add(format);
+                comboBoxStopFormatInterval9.Items.Add(format);
+                comboBoxStopFormatInterval10.Items.Add(format);
+            }
+            foreach (string hour in hours)
+            {
+                comboBoxStartHourInterval1.Items.Add(hour);
+                comboBoxStartHourInterval2.Items.Add(hour);
+                comboBoxStartHourInterval3.Items.Add(hour);
+                comboBoxStartHourInterval4.Items.Add(hour);
+                comboBoxStartHourInterval5.Items.Add(hour);
+                comboBoxStartHourInterval6.Items.Add(hour);
+                comboBoxStartHourInterval7.Items.Add(hour);
+                comboBoxStartHourInterval8.Items.Add(hour);
+                comboBoxStartHourInterval9.Items.Add(hour);
+                comboBoxStartHourInterval10.Items.Add(hour);
+            }
+            foreach (string hour in hours)
+            {
+                comboBoxStopHourInterval1.Items.Add(hour);
+                comboBoxStopHourInterval2.Items.Add(hour);
+                comboBoxStopHourInterval3.Items.Add(hour);
+                comboBoxStopHourInterval4.Items.Add(hour);
+                comboBoxStopHourInterval5.Items.Add(hour);
+                comboBoxStopHourInterval6.Items.Add(hour);
+                comboBoxStopHourInterval7.Items.Add(hour);
+                comboBoxStopHourInterval8.Items.Add(hour);
+                comboBoxStopHourInterval9.Items.Add(hour);
+                comboBoxStopHourInterval10.Items.Add(hour);
+            }
+            foreach (string minute in minutes)
+            {
+                comboBoxStartMinuteInterval1.Items.Add(minute);
+                comboBoxStartMinuteInterval2.Items.Add(minute);
+                comboBoxStartMinuteInterval3.Items.Add(minute);
+                comboBoxStartMinuteInterval4.Items.Add(minute);
+                comboBoxStartMinuteInterval5.Items.Add(minute);
+                comboBoxStartMinuteInterval6.Items.Add(minute);
+                comboBoxStartMinuteInterval7.Items.Add(minute);
+                comboBoxStartMinuteInterval8.Items.Add(minute);
+                comboBoxStartMinuteInterval9.Items.Add(minute);
+                comboBoxStartMinuteInterval10.Items.Add(minute);
+            }
+            foreach (string minute in minutes)
+            {
+                comboBoxStopMinuteInterval1.Items.Add(minute);
+                comboBoxStopMinuteInterval2.Items.Add(minute);
+                comboBoxStopMinuteInterval3.Items.Add(minute);
+                comboBoxStopMinuteInterval4.Items.Add(minute);
+                comboBoxStopMinuteInterval5.Items.Add(minute);
+                comboBoxStopMinuteInterval6.Items.Add(minute);
+                comboBoxStopMinuteInterval7.Items.Add(minute);
+                comboBoxStopMinuteInterval8.Items.Add(minute);
+                comboBoxStopMinuteInterval9.Items.Add(minute);
+                comboBoxStopMinuteInterval10.Items.Add(minute);
+            }
+        }
+
         private SoundPlayer soundPlayerForASongPrimary = new SoundPlayer();
         private SoundPlayer soundPlayerForATonePrimary = new SoundPlayer();
 
@@ -96,90 +180,6 @@ namespace ClassBellProject.Primary
             "59"
         };
 
-        public PrimaryMainWindow()
-        {
-            InitializeComponent();
-
-            foreach (string format in formats)
-            {
-                comboBoxStartFormatInterval1.Items.Add(format);
-                comboBoxStartFormatInterval2.Items.Add(format);
-                comboBoxStartFormatInterval3.Items.Add(format);
-                comboBoxStartFormatInterval4.Items.Add(format);
-                comboBoxStartFormatInterval5.Items.Add(format);
-                comboBoxStartFormatInterval6.Items.Add(format);
-                comboBoxStartFormatInterval7.Items.Add(format);
-                comboBoxStartFormatInterval8.Items.Add(format);
-                comboBoxStartFormatInterval9.Items.Add(format);
-                comboBoxStartFormatInterval10.Items.Add(format);
-            }
-            foreach (string format in formats)
-            {
-                comboBoxStopFormatInterval1.Items.Add(format);
-                comboBoxStopFormatInterval2.Items.Add(format);
-                comboBoxStopFormatInterval3.Items.Add(format);
-                comboBoxStopFormatInterval4.Items.Add(format);
-                comboBoxStopFormatInterval5.Items.Add(format);
-                comboBoxStopFormatInterval6.Items.Add(format);
-                comboBoxStopFormatInterval7.Items.Add(format);
-                comboBoxStopFormatInterval8.Items.Add(format);
-                comboBoxStopFormatInterval9.Items.Add(format);
-                comboBoxStopFormatInterval10.Items.Add(format);
-            }
-            foreach (string hour in hours)
-            {
-                comboBoxStartHourInterval1.Items.Add(hour);
-                comboBoxStartHourInterval2.Items.Add(hour);
-                comboBoxStartHourInterval3.Items.Add(hour);
-                comboBoxStartHourInterval4.Items.Add(hour);
-                comboBoxStartHourInterval5.Items.Add(hour);
-                comboBoxStartHourInterval6.Items.Add(hour);
-                comboBoxStartHourInterval7.Items.Add(hour);
-                comboBoxStartHourInterval8.Items.Add(hour);
-                comboBoxStartHourInterval9.Items.Add(hour);
-                comboBoxStartHourInterval10.Items.Add(hour);
-            }
-            foreach (string hour in hours)
-            {
-                comboBoxStopHourInterval1.Items.Add(hour);
-                comboBoxStopHourInterval2.Items.Add(hour);
-                comboBoxStopHourInterval3.Items.Add(hour);
-                comboBoxStopHourInterval4.Items.Add(hour);
-                comboBoxStopHourInterval5.Items.Add(hour);
-                comboBoxStopHourInterval6.Items.Add(hour);
-                comboBoxStopHourInterval7.Items.Add(hour);
-                comboBoxStopHourInterval8.Items.Add(hour);
-                comboBoxStopHourInterval9.Items.Add(hour);
-                comboBoxStopHourInterval10.Items.Add(hour);
-            }
-            foreach (string minute in minutes)
-            {
-                comboBoxStartMinuteInterval1.Items.Add(minute);
-                comboBoxStartMinuteInterval2.Items.Add(minute);
-                comboBoxStartMinuteInterval3.Items.Add(minute);
-                comboBoxStartMinuteInterval4.Items.Add(minute);
-                comboBoxStartMinuteInterval5.Items.Add(minute);
-                comboBoxStartMinuteInterval6.Items.Add(minute);
-                comboBoxStartMinuteInterval7.Items.Add(minute);
-                comboBoxStartMinuteInterval8.Items.Add(minute);
-                comboBoxStartMinuteInterval9.Items.Add(minute);
-                comboBoxStartMinuteInterval10.Items.Add(minute);
-            }
-            foreach (string minute in minutes)
-            {
-                comboBoxStopMinuteInterval1.Items.Add(minute);
-                comboBoxStopMinuteInterval2.Items.Add(minute);
-                comboBoxStopMinuteInterval3.Items.Add(minute);
-                comboBoxStopMinuteInterval4.Items.Add(minute);
-                comboBoxStopMinuteInterval5.Items.Add(minute);
-                comboBoxStopMinuteInterval6.Items.Add(minute);
-                comboBoxStopMinuteInterval7.Items.Add(minute);
-                comboBoxStopMinuteInterval8.Items.Add(minute);
-                comboBoxStopMinuteInterval9.Items.Add(minute);
-                comboBoxStopMinuteInterval10.Items.Add(minute);
-            }
-        }
-
         public List<string> GetDaysSelectedForPrimary()
         {
             // Dicționar pentru conversie rapidă
@@ -201,6 +201,10 @@ namespace ClassBellProject.Primary
                           .ToList();
         }
 
+        public string[] GetAllSongsPrimary() => GetFilesFromFolder("Songs Primary");
+
+        public string[] GetAllTonesPrimary() => GetFilesFromFolder("Tones Primary");
+
         // Această variabilă trebuie să fie declarată în afara metodei, 
         // ca membru al clasei, pentru a-și păstra valoarea între apeluri.
         private DateTime _lastRunDatePrimary = DateTime.MinValue;
@@ -217,11 +221,9 @@ namespace ClassBellProject.Primary
                 {
                     var intervals = GetIntervalsAndChecksFromDatabase(0, (int)now.DayOfWeek);
 
-                    // Găsim ora de sfârșit a ultimului interval din zi
                     var lastInterval = intervals.Where(x => x.Start != "" && x.Stop != "").LastOrDefault();
                     DateTime lastTodayHour = lastInterval != null ? DateTime.Parse(lastInterval.Stop) : DateTime.MinValue;
 
-                    // Dacă am depășit ora ultimului interval, marcăm ziua ca terminată
                     if (now > lastTodayHour && intervals.Any())
                     {
                         _lastRunDatePrimary = now.Date;
@@ -229,8 +231,13 @@ namespace ClassBellProject.Primary
                         continue;
                     }
 
+                    // --- AICI ESTE LOCUL CORECT PENTRU ÎNCĂRCAREA COLECȚIILOR ---
+                    // Le încărcăm o singură dată pe zi, chiar înainte de a începe intervalele
+                    string[] songs = GetAllSongsPrimary();
+                    string[] tones = GetAllTonesPrimary();
                     int[] shuffleSongs = ShuffleAllSongsPrimary();
                     int songCursor = 0;
+                    // ----------------------------------------------------------
 
                     foreach (var interval in intervals)
                     {
@@ -240,25 +247,23 @@ namespace ClassBellProject.Primary
                         DateTime start = DateTime.Parse(interval.Start);
                         DateTime stop = DateTime.Parse(interval.Stop);
 
-                        // Sărim peste intervalele care au trecut deja (ex: la restart aplicație la prânz)
-                        if (now > stop) continue;
+                        if (DateTime.Now > stop) continue; // Folosim DateTime.Now actualizat aici
 
-                        // 1. AȘTEPTARE PÂNĂ LA START (Dacă e cazul)
+                        // 1. AȘTEPTARE PÂNĂ LA START
                         while (DateTime.Now < start && !token.IsCancellationRequested)
                         {
-                            await Task.Delay(500, token); // Verificăm de 2 ori pe secundă
+                            await Task.Delay(500, token);
                         }
 
-                        // 2. SONERIE IEȘIRE (Dacă e bifat)
+                        // 2. SONERIE IEȘIRE - Trimitem lista de tonuri deja încărcată
                         if (interval.ExitTone && !token.IsCancellationRequested)
                         {
-                            await StartAToneByPositionPrimaryAsync(1);
+                            await StartAToneByPositionPrimaryAsync(1, tones);
                         }
 
                         // 3. LOGICĂ MUZICĂ SAU CURS
                         if (interval.HoldCourse)
                         {
-                            // Așteptăm să treacă ora de curs
                             while (DateTime.Now < stop && !token.IsCancellationRequested)
                             {
                                 await Task.Delay(1000, token);
@@ -266,33 +271,29 @@ namespace ClassBellProject.Primary
                         }
                         else if (interval.HoldMusic)
                         {
-                            // Cântă muzică până la ora de Stop
                             while (DateTime.Now < stop && !token.IsCancellationRequested)
                             {
-                                await StartASongByPositionAndTimePrimaryAsync(shuffleSongs[songCursor], stop);
+                                // Trimitem lista de melodii "songs" ca să nu le mai citească din nou de pe disc
+                                await StartASongByPositionAndTimePrimaryAsync(shuffleSongs[songCursor], stop, songs);
 
-                                songCursor = (songCursor + 1) % shuffleSongs.Length; // Reset automat la 0
+                                songCursor = (songCursor + 1) % shuffleSongs.Length;
                             }
                         }
 
-                        // 4. SONERIE INTRARE (La finalul pauzei/cursului)
+                        // 4. SONERIE INTRARE - Trimitem lista de tonuri
                         if (interval.EntranceTone && !token.IsCancellationRequested)
                         {
-                            await StartAToneByPositionPrimaryAsync(0);
+                            await StartAToneByPositionPrimaryAsync(0, tones);
                         }
                     }
-                    // OPȚIONAL: După ce foreach-ul se termină natural (s-au parcurs toate intervalele)
-                    // marcăm ziua ca fiind executată complet.
+
                     _lastRunDatePrimary = DateTime.Today;
                 }
                 else
                 {
-                    // Dacă am terminat pe azi sau nu e zi de primar, "dormim" mai mult
-                    // Verificăm rar (la 30 min) dacă s-a schimbat ziua
                     await Task.Delay(TimeSpan.FromMinutes(30), token);
                 }
 
-                // O mică pauză de siguranță pentru bucla principală
                 await Task.Delay(1000, token);
             }
         }
@@ -325,18 +326,71 @@ namespace ClassBellProject.Primary
             return Directory.GetFiles(finalPath);
         }
 
-        public async Task StartASongByPositionAndTimePrimaryAsync(int position, DateTime dateTime)
+        public decimal GetNumberOfSecondsOfASongPrimary(string filePath)
         {
-            string[] songsPrimary = GetFilesFromFolder("Songs Primary");
-            soundPlayerForASongPrimary.SoundLocation = songsPrimary[position];
-            soundPlayerForASongPrimary.Play();
+            FileInfo fileInfo = new FileInfo(filePath);
+
+            // 44100 Hz * 2 bytes (16-bit) * 2 channels = 176.400 bytes pe secundă
+            const int bytesPerSecond = 44100 * 2 * 2;
+
+            // Calculăm durata exactă
+            decimal duration = (decimal)fileInfo.Length / bytesPerSecond;
+
+            // Rotunjim în sus la cea mai apropiată secundă pentru siguranță
+            return Math.Ceiling(duration);
         }
 
-        public async Task StartAToneByPositionPrimaryAsync(int position)
+        public decimal GetNumberOfSecondsOfATonePrimary(string filePath)
         {
-            string[] tonesPrimary = GetFilesFromFolder("Tones Primary");
-            soundPlayerForATonePrimary.SoundLocation = tonesPrimary[position];
+            FileInfo fileInfo = new FileInfo(filePath);
+
+            // Parametrii standard pentru WAV (CD Quality)
+            const int sampleRate = 44100;
+            const int bytesPerSample = 2; // 16 bit / 8
+            const int channels = 2;
+
+            // Bytes per second = 44100 * 2 * 2 = 176,400 bytes/sec
+            int bytesPerSecond = sampleRate * bytesPerSample * channels;
+
+            decimal duration = (decimal)fileInfo.Length / bytesPerSecond;
+
+            // Rotunjim în sus (Math.Ceiling) pentru a ne asigura că nu tăiem din finalul sunetului
+            return Math.Ceiling(duration);
+        }
+
+        public async Task StartASongByPositionAndTimePrimaryAsync(int position, DateTime stopTime, string[] cachedSongs)
+        {
+            if (position >= cachedSongs.Length) return;
+
+            string songPath = cachedSongs[position];
+            soundPlayerForASongPrimary.SoundLocation = songPath;
+
+            // Obținem durata și calculăm cât timp mai avem până la ora de Stop
+            int durationMs = (int)(GetNumberOfSecondsOfASongPrimary(songPath) * 1000);
+            int remainingTimeMs = (int)(stopTime - DateTime.Now).TotalMilliseconds;
+
+            // Cântăm fie toată melodia, fie cât a mai rămas până la Stop (care e mai mică)
+            int waitTime = Math.Min(durationMs, remainingTimeMs);
+
+            if (waitTime > 0)
+            {
+                soundPlayerForASongPrimary.Play();
+                await Task.Delay(waitTime);
+                soundPlayerForASongPrimary.Stop(); // Oprirea explicită e mai sigură
+            }
+        }
+
+        public async Task StartAToneByPositionPrimaryAsync(int position, string[] cachedTones)
+        {
+            if (position >= cachedTones.Length) return;
+
+            string tonePath = cachedTones[position];
+            soundPlayerForATonePrimary.SoundLocation = tonePath;
+
+            int durationMs = (int)(GetNumberOfSecondsOfATonePrimary(tonePath) * 1000);
+
             soundPlayerForATonePrimary.Play();
+            await Task.Delay(durationMs);
         }
 
         private Random rng = new Random();

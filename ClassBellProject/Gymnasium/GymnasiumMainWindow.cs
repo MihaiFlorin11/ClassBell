@@ -1,4 +1,5 @@
-﻿using ClassBellProject.Gymnasium;
+﻿using ClassBellProject.Common;
+using ClassBellProject.Gymnasium;
 using ClassBellProject.Primary;
 using Microsoft.Data.Sqlite;
 using System.Data;
@@ -12,6 +13,7 @@ namespace ClassBellProject.Gymnasium
         public GymnasiumMainWindow()
         {
             InitializeComponent();
+
             foreach (string format in formats)
             {
                 comboBoxStartFormatInterval1.Items.Add(format);
@@ -178,531 +180,185 @@ namespace ClassBellProject.Gymnasium
             "AM",
             "PM"
         };
-        string dayChecked;
-        List<string> days = new List<string>();
 
-        public List<string> GetDaysSelected()
+        public List<string> GetDaysSelectedForGymnasium()
         {
-            List<string> daysChecked = new List<string>();
-
-            days = checkedListBoxDaysGymnasium.Items.Cast<string>().ToList();
-
-            foreach (string day in days)
+            // Dicționar pentru conversie rapidă
+            var daysConversion = new Dictionary<string, string>
             {
-                if (checkedListBoxDaysGymnasium.CheckedItems.Contains(day))
-                {
-                    switch (day)
-                    {
-                        case "Luni":
-                            daysChecked.Add(DayOfWeek.Monday.ToString());
-                            break;
-                        case "Marti":
-                            daysChecked.Add(DayOfWeek.Tuesday.ToString());
-                            break;
-                        case "Miercuri":
-                            daysChecked.Add(DayOfWeek.Wednesday.ToString());
-                            break;
-                        case "Joi":
-                            daysChecked.Add(DayOfWeek.Thursday.ToString());
-                            break;
-                        case "Vineri":
-                            daysChecked.Add(DayOfWeek.Friday.ToString());
-                            break;
-                        case "Sambata":
-                            daysChecked.Add(DayOfWeek.Saturday.ToString());
-                            break;
-                        case "Duminica":
-                            daysChecked.Add(DayOfWeek.Sunday.ToString());
-                            break;
-                    }
-                }
-            }
-
-            return daysChecked;
-        }
-
-        public async Task StartSongsAndTonesByIntervalsAndDaysGymnasiumAsync()
-        {
-            Dictionary<int, string> indexesAndDays = new Dictionary<int, string>()
-            {
-                {1,  "Monday"},
-                {2,  "Tuesday"},
-                {3,  "Wednesday"},
-                {4,  "Thursday"},
-                {5,  "Friday"},
-                {6,  "Saturday"},
-                {7,  "Sunday"}
+                { "Luni", "Monday" },
+                { "Marti", "Tuesday" },
+                { "Miercuri", "Wednesday" },
+                { "Joi", "Thursday" },
+                { "Vineri", "Friday" },
+                { "Sambata", "Saturday" },
+                { "Duminica", "Sunday" }
             };
 
-            List<IntervalsAndChecksGymnasium> IntervalsAndChecksGymnasium = new List<IntervalsAndChecksGymnasium>();
-            List<string> daysSelected = GetDaysSelected();
-            List<string> nextDaysForActualDay = new List<string>();
-            int nextDayPosition = 0;
-            for (int k = 0; k < daysSelected.Count - 1; k++)
-            {
-                nextDayPosition = indexesAndDays.FirstOrDefault(x => x.Value == daysSelected[k + 1]).Key;
-                nextDaysForActualDay.Add(indexesAndDays[nextDayPosition]);
-            }
+            // Luăm doar itemele care sunt bifate (CheckedItems)
+            return checkedListBoxDaysGymnasium.CheckedItems.Cast<string>()
+                          .Where(day => daysConversion.ContainsKey(day))
+                          .Select(day => daysConversion[day])
+                          .ToList();
+        }
 
-            for (int i = 0; i < daysSelected.Count; i++)
+        // Această variabilă trebuie să fie declarată în afara metodei, 
+        // ca membru al clasei, pentru a-și păstra valoarea între apeluri.
+        private DateTime _lastRunDatePrimary = DateTime.MinValue;
+
+        public async Task StartSongsAndTonesGymnasiumAsync(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
             {
-                if (daysSelected[i] == DateTime.Now.DayOfWeek.ToString())
+                DateTime now = DateTime.Now;
+                string today = now.DayOfWeek.ToString();
+                List<string> daysSelected = GetDaysSelectedForGymnasium();
+
+                if (daysSelected.Contains(today) && _lastRunDatePrimary.Date != now.Date)
                 {
-                    int[] shuffleSongsGymnasium = ShuffleAllSongsGymnasium();
+                    var intervals = GetIntervalsAndChecksFromDatabase(1, (int)now.DayOfWeek);
+
+                    // Găsim ora de sfârșit a ultimului interval din zi
+                    var lastInterval = intervals.Where(x => x.Start != "" && x.Stop != "").LastOrDefault();
+                    DateTime lastTodayHour = lastInterval != null ? DateTime.Parse(lastInterval.Stop) : DateTime.MinValue;
+
+                    // Dacă am depășit ora ultimului interval, marcăm ziua ca terminată
+                    if (now > lastTodayHour && intervals.Any())
+                    {
+                        _lastRunDatePrimary = now.Date;
+                        await Task.Delay(TimeSpan.FromMinutes(30), token);
+                        continue;
+                    }
+
+                    int[] shuffleSongs = ShuffleAllSongsPrimary();
                     int songCursor = 0;
-                    int indexNumber = 0;
-                    int actualDayKeyForIntervalsAndChecks = indexesAndDays.FirstOrDefault(x => x.Value == daysSelected[i]).Key;
-                    List<IntervalsAndChecksGymnasium> actualIntervalsAndChecksByDayId = GetAllIntervalsAndChecksGymnasiumByDayId(actualDayKeyForIntervalsAndChecks);
 
-                    if (indexNumber < actualIntervalsAndChecksByDayId.Count)
+                    foreach (var interval in intervals)
                     {
-                        if (actualIntervalsAndChecksByDayId[0].Start != "" && actualIntervalsAndChecksByDayId[0].Stop != "" &&
-                            DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[0].Stop))
+                        if (token.IsCancellationRequested) break;
+                        if (string.IsNullOrEmpty(interval.Start) || string.IsNullOrEmpty(interval.Stop)) continue;
+
+                        DateTime start = DateTime.Parse(interval.Start);
+                        DateTime stop = DateTime.Parse(interval.Stop);
+
+                        // Sărim peste intervalele care au trecut deja (ex: la restart aplicație la prânz)
+                        if (now > stop) continue;
+
+                        // 1. AȘTEPTARE PÂNĂ LA START (Dacă e cazul)
+                        while (DateTime.Now < start && !token.IsCancellationRequested)
                         {
-                            if (actualIntervalsAndChecksByDayId[0].HoldOn == true)
+                            await Task.Delay(500, token); // Verificăm de 2 ori pe secundă
+                        }
+
+                        // 2. SONERIE IEȘIRE (Dacă e bifat)
+                        if (interval.ExitTone && !token.IsCancellationRequested)
+                        {
+                            await StartAToneByPositionPrimaryAsync(1);
+                        }
+
+                        // 3. LOGICĂ MUZICĂ SAU CURS
+                        if (interval.HoldCourse)
+                        {
+                            // Așteptăm să treacă ora de curs
+                            while (DateTime.Now < stop && !token.IsCancellationRequested)
                             {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[0].Start)).TotalMilliseconds));
+                                await Task.Delay(1000, token);
                             }
-                            if (actualIntervalsAndChecksByDayId[0].ExitTone == true)
+                        }
+                        else if (interval.HoldMusic)
+                        {
+                            // Cântă muzică până la ora de Stop
+                            while (DateTime.Now < stop && !token.IsCancellationRequested)
                             {
-                                await StartAToneByPositionGymnasiumAsync(1);
+                                await StartASongByPositionAndTimePrimaryAsync(shuffleSongs[songCursor], stop);
+
+                                songCursor = (songCursor + 1) % shuffleSongs.Length; // Reset automat la 0
                             }
-                            if (actualIntervalsAndChecksByDayId[0].HoldCourse == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[0].Stop)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[0].HoldMusic == true)
-                            {
-                                while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[0].Stop))
-                                {
-                                    await StartASongByPositionAndTimeGymnasiumAsync(shuffleSongsGymnasium[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[0].Stop));
-                                    songCursor++;
-                                    if (songCursor == shuffleSongsGymnasium.Length)
-                                    {
-                                        songCursor = 0;
-                                        shuffleSongsGymnasium = ShuffleAllSongsGymnasium();
-                                    }
-                                }
-                            }
-                            if (actualIntervalsAndChecksByDayId[0].EntranceTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(0);
-                            }
+                        }
+
+                        // 4. SONERIE INTRARE (La finalul pauzei/cursului)
+                        if (interval.EntranceTone && !token.IsCancellationRequested)
+                        {
+                            await StartAToneByPositionPrimaryAsync(0);
                         }
                     }
-                    indexNumber++;
-
-                    if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-                    {
-                        if (actualIntervalsAndChecksByDayId[1].Start != "" && actualIntervalsAndChecksByDayId[1].Stop != "" &&
-                            DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[1].Stop))
-                        {
-                            if (actualIntervalsAndChecksByDayId[1].HoldOn == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[1].Start)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[1].ExitTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(1);
-                            }
-                            if (actualIntervalsAndChecksByDayId[1].HoldCourse == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[1].Stop)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[1].HoldMusic == true)
-                            {
-                                while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[1].Stop))
-                                {
-                                    await StartASongByPositionAndTimeGymnasiumAsync(shuffleSongsGymnasium[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[1].Stop));
-                                    songCursor++;
-                                    if (songCursor == shuffleSongsGymnasium.Length)
-                                    {
-                                        songCursor = 0;
-                                        shuffleSongsGymnasium = ShuffleAllSongsGymnasium();
-                                    }
-                                }
-                            }
-                            if (actualIntervalsAndChecksByDayId[1].EntranceTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(0);
-                            }
-                        }
-                    }
-                    indexNumber++;
-
-                    if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-                    {
-                        if (actualIntervalsAndChecksByDayId[2].Start != "" && actualIntervalsAndChecksByDayId[2].Stop != "" &&
-                            DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[2].Stop))
-                        {
-                            if (actualIntervalsAndChecksByDayId[2].HoldOn == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[2].Start)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[2].ExitTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(1);
-                            }
-                            if (actualIntervalsAndChecksByDayId[2].HoldCourse == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[2].Stop)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[2].HoldMusic == true)
-                            {
-                                while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[2].Stop))
-                                {
-                                    await StartASongByPositionAndTimeGymnasiumAsync(shuffleSongsGymnasium[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[2].Stop));
-                                    songCursor++;
-                                    if (songCursor == shuffleSongsGymnasium.Length)
-                                    {
-                                        songCursor = 0;
-                                        shuffleSongsGymnasium = ShuffleAllSongsGymnasium();
-                                    }
-                                }
-                            }
-                            if (actualIntervalsAndChecksByDayId[2].EntranceTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(0);
-                            }
-                        }
-                    }
-                    indexNumber++;
-
-                    if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-                    {
-                        if (actualIntervalsAndChecksByDayId[3].Start != "" && actualIntervalsAndChecksByDayId[3].Stop != "" &&
-                            DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[3].Stop))
-                        {
-                            if (actualIntervalsAndChecksByDayId[3].HoldOn == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[3].Start)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[3].ExitTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(1);
-                            }
-                            if (actualIntervalsAndChecksByDayId[3].HoldCourse == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[3].Stop)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[3].HoldMusic == true)
-                            {
-                                while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[3].Stop))
-                                {
-                                    await StartASongByPositionAndTimeGymnasiumAsync(shuffleSongsGymnasium[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[3].Stop));
-                                    songCursor++;
-                                    if (songCursor == shuffleSongsGymnasium.Length)
-                                    {
-                                        songCursor = 0;
-                                        shuffleSongsGymnasium = ShuffleAllSongsGymnasium();
-                                    }
-                                }
-                            }
-                            if (actualIntervalsAndChecksByDayId[3].EntranceTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(0);
-                            }
-                        }
-                    }
-                    indexNumber++;
-
-                    if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-                    {
-                        if (actualIntervalsAndChecksByDayId[4].Start != "" && actualIntervalsAndChecksByDayId[4].Stop != "" &&
-                            DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[4].Stop))
-                        {
-                            if (actualIntervalsAndChecksByDayId[4].HoldOn == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[4].Start)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[4].ExitTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(1);
-                            }
-                            if (actualIntervalsAndChecksByDayId[4].HoldCourse == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[4].Stop)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[4].HoldMusic == true)
-                            {
-                                while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[4].Stop))
-                                {
-                                    await StartASongByPositionAndTimeGymnasiumAsync(shuffleSongsGymnasium[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[4].Stop));
-                                    songCursor++;
-                                    if (songCursor == shuffleSongsGymnasium.Length)
-                                    {
-                                        songCursor = 0;
-                                        shuffleSongsGymnasium = ShuffleAllSongsGymnasium();
-                                    }
-                                }
-                            }
-                            if (actualIntervalsAndChecksByDayId[4].EntranceTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(0);
-                            }
-                        }
-                    }
-                    indexNumber++;
-
-                    if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-                    {
-                        if (actualIntervalsAndChecksByDayId[5].Start != "" && actualIntervalsAndChecksByDayId[5].Stop != "" &&
-                            DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[5].Stop))
-                        {
-                            if (actualIntervalsAndChecksByDayId[5].HoldOn == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[5].Start)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[5].ExitTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(1);
-                            }
-                            if (actualIntervalsAndChecksByDayId[5].HoldCourse == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[5].Stop)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[5].HoldMusic == true)
-                            {
-                                while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[5].Stop))
-                                {
-                                    await StartASongByPositionAndTimeGymnasiumAsync(shuffleSongsGymnasium[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[5].Stop));
-                                    songCursor++;
-                                    if (songCursor == shuffleSongsGymnasium.Length)
-                                    {
-                                        songCursor = 0;
-                                        shuffleSongsGymnasium = ShuffleAllSongsGymnasium();
-                                    }
-                                }
-                            }
-                            if (actualIntervalsAndChecksByDayId[5].EntranceTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(0);
-                            }
-                        }
-                    }
-                    indexNumber++;
-
-                    if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-                    {
-                        if (actualIntervalsAndChecksByDayId[6].Start != "" && actualIntervalsAndChecksByDayId[6].Stop != "" &&
-                            DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[6].Stop))
-                        {
-                            if (actualIntervalsAndChecksByDayId[6].HoldOn == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[6].Start)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[6].ExitTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(1);
-                            }
-                            if (actualIntervalsAndChecksByDayId[6].HoldCourse == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[6].Stop)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[6].HoldMusic == true)
-                            {
-                                while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[6].Stop))
-                                {
-                                    await StartASongByPositionAndTimeGymnasiumAsync(shuffleSongsGymnasium[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[6].Stop));
-                                    songCursor++;
-                                    if (songCursor == shuffleSongsGymnasium.Length)
-                                    {
-                                        songCursor = 0;
-                                        shuffleSongsGymnasium = ShuffleAllSongsGymnasium();
-                                    }
-                                }
-                            }
-                            if (actualIntervalsAndChecksByDayId[6].EntranceTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(0);
-                            }
-                        }
-                    }
-                    indexNumber++;
-
-                    if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-                    {
-                        if (actualIntervalsAndChecksByDayId[7].Start != "" && actualIntervalsAndChecksByDayId[7].Stop != "" &&
-                            DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[7].Stop))
-                        {
-                            if (actualIntervalsAndChecksByDayId[7].HoldOn == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[7].Start)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[7].ExitTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(1);
-                            }
-                            if (actualIntervalsAndChecksByDayId[7].HoldCourse == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[7].Stop)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[7].HoldMusic == true)
-                            {
-                                while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[7].Stop))
-                                {
-                                    await StartASongByPositionAndTimeGymnasiumAsync(shuffleSongsGymnasium[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[7].Stop));
-                                    songCursor++;
-                                    if (songCursor == shuffleSongsGymnasium.Length)
-                                    {
-                                        songCursor = 0;
-                                        shuffleSongsGymnasium = ShuffleAllSongsGymnasium();
-                                    }
-                                }
-                            }
-                            if (actualIntervalsAndChecksByDayId[7].EntranceTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(0);
-                            }
-                        }
-                    }
-                    indexNumber++;
-
-                    if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-                    {
-                        if (actualIntervalsAndChecksByDayId[8].Start != "" && actualIntervalsAndChecksByDayId[8].Stop != "" &&
-                            DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[8].Stop))
-                        {
-                            if (actualIntervalsAndChecksByDayId[8].HoldOn == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[8].Start)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[8].ExitTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(1);
-                            }
-                            if (actualIntervalsAndChecksByDayId[8].HoldCourse == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[8].Stop)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[8].HoldMusic == true)
-                            {
-                                while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[8].Stop))
-                                {
-                                    await StartASongByPositionAndTimeGymnasiumAsync(shuffleSongsGymnasium[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[8].Stop));
-                                    songCursor++;
-                                    if (songCursor == shuffleSongsGymnasium.Length)
-                                    {
-                                        songCursor = 0;
-                                        shuffleSongsGymnasium = ShuffleAllSongsGymnasium();
-                                    }
-                                }
-                            }
-                            if (actualIntervalsAndChecksByDayId[8].EntranceTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(0);
-                            }
-                        }
-                    }
-                    indexNumber++;
-
-                    if (indexNumber < actualIntervalsAndChecksByDayId.Count)
-                    {
-                        if (actualIntervalsAndChecksByDayId[9].Start != "" && actualIntervalsAndChecksByDayId[9].Stop != "" &&
-                            DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[9].Stop))
-                        {
-                            if (actualIntervalsAndChecksByDayId[9].HoldOn == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[9].Start)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[9].ExitTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(1);
-                            }
-                            if (actualIntervalsAndChecksByDayId[9].HoldCourse == true)
-                            {
-                                await Task.Delay((int)Math.Abs(DateTime.Now.Subtract(DateTime.Parse(actualIntervalsAndChecksByDayId[9].Stop)).TotalMilliseconds));
-                            }
-                            if (actualIntervalsAndChecksByDayId[9].HoldMusic == true)
-                            {
-                                while (DateTime.Parse(DateTime.Now.ToLongTimeString()) < DateTime.Parse(actualIntervalsAndChecksByDayId[9].Stop))
-                                {
-                                    await StartASongByPositionAndTimeGymnasiumAsync(shuffleSongsGymnasium[songCursor], DateTime.Parse(actualIntervalsAndChecksByDayId[9].Stop));
-                                    songCursor++;
-                                    if (songCursor == shuffleSongsGymnasium.Length)
-                                    {
-                                        songCursor = 0;
-                                        shuffleSongsGymnasium = ShuffleAllSongsGymnasium();
-                                    }
-                                }
-                            }
-                            if (actualIntervalsAndChecksByDayId[9].EntranceTone == true)
-                            {
-                                await StartAToneByPositionGymnasiumAsync(0);
-                            }
-                        }
-                    }
-                    indexNumber++;
-
-                    int actualDayKey = 0;
-                    int nextDayKey = 0;
-                    string startIntervalNextDayValue = string.Empty;
-                    string stopIntervalActualDayValue = string.Empty;
-                    if (daysSelected.Count > 1)
-                    {
-                        if (i < daysSelected.Count - 1)
-                        {
-                            nextDayKey = indexesAndDays.FirstOrDefault(x => x.Value == nextDaysForActualDay[i]).Key;
-                            actualDayKey = indexesAndDays.FirstOrDefault(x => x.Value == daysSelected[i]).Key;
-                            startIntervalNextDayValue = GetStartIntervalGymnasiumByDayId(nextDayKey);
-                            stopIntervalActualDayValue = GetStopIntervalGymnasiumByDayId(actualDayKey);
-                        }
-                        else
-                        {
-                            break;
-                        }
-                        if (nextDayKey - actualDayKey - 1 == 0)
-                        {
-                            await Task.Delay((int)Math.Abs(86400000 - Math.Abs(DateTime.Parse(stopIntervalActualDayValue).
-                                                                      Subtract(DateTime.Parse(startIntervalNextDayValue)).TotalMilliseconds)));
-                        }
-                        else
-                        {
-                            if (nextDayKey - actualDayKey - 1 > 0)
-                            {
-                                await Task.Delay((int)Math.Abs(86400000 - Math.Abs(DateTime.Parse(stopIntervalActualDayValue).
-                                                               Subtract(DateTime.Parse(startIntervalNextDayValue)).TotalMilliseconds)) +
-                                                              (nextDayKey - actualDayKey - 1) * 86400000);
-                            }
-                        }
-                    }
+                    // OPȚIONAL: După ce foreach-ul se termină natural (s-au parcurs toate intervalele)
+                    // marcăm ziua ca fiind executată complet.
+                    _lastRunDatePrimary = DateTime.Today;
                 }
+                else
+                {
+                    // Dacă am terminat pe azi sau nu e zi de primar, "dormim" mai mult
+                    // Verificăm rar (la 30 min) dacă s-a schimbat ziua
+                    await Task.Delay(TimeSpan.FromMinutes(30), token);
+                }
+
+                // O mică pauză de siguranță pentru bucla principală
+                await Task.Delay(1000, token);
             }
         }
 
-        public string GetStartIntervalGymnasiumByDayId(int dayId)
+        private string[] GetFilesFromFolder(string folderName)
         {
-            string startIntervalGymnasium = string.Empty;
-            List<IntervalsAndChecksGymnasium> IntervalsAndChecksGymnasium = ReadIntervalsAndChecksGymnasiumFromDatabase();
-            for (int iterator = 0; iterator < IntervalsAndChecksGymnasium.Count; iterator++)
+            // Aceasta este calea FIXĂ a folderului unde este instalată aplicația
+            string basePath = AppDomain.CurrentDomain.BaseDirectory;
+
+            // Curățăm calea pentru a găsi folderul rădăcină "ClassBell"
+            // Dacă după publish folderul "Tones Primary" este direct lângă .exe, 
+            // nu mai avem nevoie de logica cu IndexOf("ClassBell")
+
+            string rootPath = basePath;
+            if (basePath.Contains("ClassBell"))
             {
-                if (IntervalsAndChecksGymnasium[iterator].DayGymnasiumId == dayId &&
-                    IntervalsAndChecksGymnasium[iterator].Start != "" &&
-                    IntervalsAndChecksGymnasium[iterator].Stop != "")
-                {
-                    startIntervalGymnasium = IntervalsAndChecksGymnasium[iterator].Start;
-                    break;
-                }
+                rootPath = basePath.Substring(0, basePath.IndexOf("ClassBell") + "ClassBell".Length);
             }
 
-            return startIntervalGymnasium;
+            // Construim calea finală
+            string finalPath = Path.Combine(rootPath, folderName);
+
+            if (!Directory.Exists(finalPath))
+            {
+                // Debug: Te ajută să vezi în consolă unde caută de fapt aplicația
+                Console.WriteLine($"Eroare: Folderul nu a fost găsit la calea: {finalPath}");
+                return Array.Empty<string>();
+            }
+
+            return Directory.GetFiles(finalPath);
         }
 
-        public string GetStopIntervalGymnasiumByDayId(int dayId)
+        public async Task StartASongByPositionAndTimeGymnasiumAsync(int position, DateTime stopTime, string[] cachedSongs)
         {
-            string stopIntervalGymnasium = string.Empty;
-            List<IntervalsAndChecksGymnasium> IntervalsAndChecksGymnasium = ReadIntervalsAndChecksGymnasiumFromDatabase();
-            for (int iterator = 0; iterator < IntervalsAndChecksGymnasium.Count; iterator++)
-            {
-                if (IntervalsAndChecksGymnasium[iterator].DayGymnasiumId == dayId &&
-                    IntervalsAndChecksGymnasium[iterator].Start != "" &&
-                    IntervalsAndChecksGymnasium[iterator].Stop != "")
-                {
-                    stopIntervalGymnasium = IntervalsAndChecksGymnasium[iterator].Stop;
-                }
-            }
+            if (position >= cachedSongs.Length) return;
 
-            return stopIntervalGymnasium;
+            string songPath = cachedSongs[position];
+            soundPlayerForASongGymnasium.SoundLocation = songPath;
+
+            // Obținem durata și calculăm cât timp mai avem până la ora de Stop
+            int durationMs = (int)(GetNumberOfSecondsOfASongGymnasium(songPath) * 1000);
+            int remainingTimeMs = (int)(stopTime - DateTime.Now).TotalMilliseconds;
+
+            // Cântăm fie toată melodia, fie cât a mai rămas până la Stop (care e mai mică)
+            int waitTime = Math.Min(durationMs, remainingTimeMs);
+
+            if (waitTime > 0)
+            {
+                soundPlayerForASongGymnasium.Play();
+                await Task.Delay(waitTime);
+                soundPlayerForASongGymnasium.Stop(); // Oprirea explicită e mai sigură
+            }
+        }
+
+        public async Task StartAToneByPositionGymnasiumAsync(int position, string[] cachedTones)
+        {
+            if (position >= cachedTones.Length) return;
+
+            string tonePath = cachedTones[position];
+            soundPlayerForAToneGymnasium.SoundLocation = tonePath;
+
+            int durationMs = (int)(GetNumberOfSecondsOfAToneGymnasium(tonePath) * 1000);
+
+            soundPlayerForAToneGymnasium.Play();
+            await Task.Delay(durationMs);
         }
 
         public List<IntervalsAndChecksGymnasium> GetAllIntervalsAndChecksGymnasiumByDayId(int dayId)
@@ -839,13 +495,49 @@ namespace ClassBellProject.Gymnasium
             return indexes;
         }
 
-        public void UpdateTableIntervalsAndChecksGymnasiumForACertainDayInDatabase()
+        public async Task StartASongByPositionAndTimePrimaryAsync(int position, DateTime dateTime)
+        {
+            string[] songsPrimary = GetFilesFromFolder("Songs Primary");
+            soundPlayerForASongGymnasium.SoundLocation = songsPrimary[position];
+            soundPlayerForASongGymnasium.Play();
+        }
+
+        public async Task StartAToneByPositionPrimaryAsync(int position)
+        {
+            string[] tonesPrimary = GetFilesFromFolder("Tones Primary");
+            soundPlayerForAToneGymnasium.SoundLocation = tonesPrimary[position];
+            soundPlayerForAToneGymnasium.Play();
+        }
+
+        private Random rng = new Random();
+
+        public int[] ShuffleAllSongsPrimary()
+        {
+            string[] songsPrimary = GetFilesFromFolder("Songs Primary");
+            int[] songsPositions = Enumerable.Range(0, songsPrimary.Length).ToArray();
+            int length = songsPrimary.Length;
+
+            while (length > 1)
+            {
+                length--;
+
+                int songPosition = rng.Next(length + 1);
+
+                int value = songsPositions[songPosition];
+                songsPositions[songPosition] = songsPositions[length];
+                songsPositions[length] = value;
+            }
+
+            return songsPositions;
+        }
+
+        public void UpdateTableTimeIntervalForACertainDayInDatabase()
         {
             string connectionString = @"Data Source=C:\Users\ComputerName\Desktop\ClassBellProject\ClassBellProjectDatabase.db;";
             SqliteConnection sqliteConnection = new SqliteConnection(connectionString);
             sqliteConnection.Open();
             SqliteCommand sqliteCommand;
-            List<IntervalsAndChecksGymnasium> IntervalsAndChecksGymnasium = new List<IntervalsAndChecksGymnasium>();
+            List<TimeInterval> TimeInterval = new List<TimeInterval>();
 
             dayChecked = listBoxSelectDayGymnasium.SelectedItem.ToString();
             switch (dayChecked)
@@ -859,7 +551,7 @@ namespace ClassBellProject.Gymnasium
                     (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
                     (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 1,
                             Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
@@ -870,9 +562,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn1.Checked,
                             HoldCourse = checkBoxHoldCourse1.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -883,21 +575,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -909,7 +601,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
                         (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 2,
                             Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
@@ -920,9 +612,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn2.Checked,
                             HoldCourse = checkBoxHoldCourse2.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -933,21 +625,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -959,7 +651,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
                         (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 3,
                             Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
@@ -970,9 +662,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn3.Checked,
                             HoldCourse = checkBoxHoldCourse3.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -983,21 +675,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1009,7 +701,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
                         (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 4,
                             Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
@@ -1020,9 +712,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn4.Checked,
                             HoldCourse = checkBoxHoldCourse4.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1033,21 +725,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1059,7 +751,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
                         (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 5,
                             Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
@@ -1070,9 +762,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn5.Checked,
                             HoldCourse = checkBoxHoldCourse5.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1083,21 +775,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1109,7 +801,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
                         (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 6,
                             Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
@@ -1120,9 +812,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn6.Checked,
                             HoldCourse = checkBoxHoldCourse6.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1133,21 +825,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1159,7 +851,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
                         (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 7,
                             Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
@@ -1170,9 +862,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn7.Checked,
                             HoldCourse = checkBoxHoldCourse7.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1183,21 +875,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1209,7 +901,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
                         (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 8,
                             Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
@@ -1220,9 +912,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn8.Checked,
                             HoldCourse = checkBoxHoldCourse8.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1233,21 +925,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1259,7 +951,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
                         (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 9,
                             Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
@@ -1270,9 +962,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn9.Checked,
                             HoldCourse = checkBoxHoldCourse9.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1283,21 +975,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1309,7 +1001,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
                         (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 10,
                             Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
@@ -1320,9 +1012,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn10.Checked,
                             HoldCourse = checkBoxHoldCourse10.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1333,21 +1025,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1362,7 +1054,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
                         (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 11,
                             Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
@@ -1373,9 +1065,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn1.Checked,
                             HoldCourse = checkBoxHoldCourse1.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1386,21 +1078,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1412,7 +1104,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
                         (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 12,
                             Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
@@ -1423,9 +1115,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn2.Checked,
                             HoldCourse = checkBoxHoldCourse2.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1436,21 +1128,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1462,7 +1154,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
                         (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 13,
                             Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
@@ -1473,9 +1165,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn3.Checked,
                             HoldCourse = checkBoxHoldCourse3.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1486,21 +1178,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1512,7 +1204,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
                         (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 14,
                             Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
@@ -1523,9 +1215,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn4.Checked,
                             HoldCourse = checkBoxHoldCourse4.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1536,21 +1228,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1562,7 +1254,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
                         (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 15,
                             Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
@@ -1573,9 +1265,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn5.Checked,
                             HoldCourse = checkBoxHoldCourse5.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1586,21 +1278,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1612,7 +1304,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
                         (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 16,
                             Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
@@ -1623,9 +1315,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn6.Checked,
                             HoldCourse = checkBoxHoldCourse6.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1636,21 +1328,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1662,7 +1354,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
                         (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 17,
                             Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
@@ -1673,9 +1365,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn7.Checked,
                             HoldCourse = checkBoxHoldCourse7.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1686,21 +1378,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1712,7 +1404,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
                         (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 18,
                             Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
@@ -1723,9 +1415,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn8.Checked,
                             HoldCourse = checkBoxHoldCourse8.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1736,21 +1428,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1762,7 +1454,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
                         (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 19,
                             Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
@@ -1773,9 +1465,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn9.Checked,
                             HoldCourse = checkBoxHoldCourse9.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1786,21 +1478,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1812,7 +1504,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
                         (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 20,
                             Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
@@ -1823,9 +1515,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn10.Checked,
                             HoldCourse = checkBoxHoldCourse10.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1836,21 +1528,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1865,7 +1557,7 @@ namespace ClassBellProject.Gymnasium
                     (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
                     (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 21,
                             Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
@@ -1876,9 +1568,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn1.Checked,
                             HoldCourse = checkBoxHoldCourse1.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1889,21 +1581,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1915,7 +1607,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
                         (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 22,
                             Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
@@ -1926,9 +1618,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn2.Checked,
                             HoldCourse = checkBoxHoldCourse2.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1939,21 +1631,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -1965,7 +1657,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
                         (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 23,
                             Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
@@ -1976,9 +1668,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn3.Checked,
                             HoldCourse = checkBoxHoldCourse3.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -1989,21 +1681,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2015,7 +1707,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
                         (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 24,
                             Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
@@ -2026,9 +1718,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn4.Checked,
                             HoldCourse = checkBoxHoldCourse4.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2039,21 +1731,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2065,7 +1757,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
                         (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 25,
                             Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
@@ -2076,9 +1768,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn5.Checked,
                             HoldCourse = checkBoxHoldCourse5.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2089,21 +1781,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2115,7 +1807,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
                         (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 26,
                             Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
@@ -2126,9 +1818,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn6.Checked,
                             HoldCourse = checkBoxHoldCourse6.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2139,21 +1831,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2165,7 +1857,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
                         (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 27,
                             Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
@@ -2176,9 +1868,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn7.Checked,
                             HoldCourse = checkBoxHoldCourse7.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2189,21 +1881,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2215,7 +1907,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
                         (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 28,
                             Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
@@ -2226,9 +1918,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn8.Checked,
                             HoldCourse = checkBoxHoldCourse8.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2239,21 +1931,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2265,7 +1957,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
                         (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 29,
                             Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
@@ -2276,9 +1968,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn9.Checked,
                             HoldCourse = checkBoxHoldCourse9.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2289,21 +1981,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2315,7 +2007,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
                         (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 30,
                             Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
@@ -2326,9 +2018,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn10.Checked,
                             HoldCourse = checkBoxHoldCourse10.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2339,21 +2031,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2368,7 +2060,7 @@ namespace ClassBellProject.Gymnasium
                     (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
                     (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 31,
                             Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
@@ -2379,9 +2071,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn1.Checked,
                             HoldCourse = checkBoxHoldCourse1.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2392,21 +2084,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2418,7 +2110,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
                         (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 32,
                             Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
@@ -2429,9 +2121,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn2.Checked,
                             HoldCourse = checkBoxHoldCourse2.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2442,21 +2134,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2468,7 +2160,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
                         (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 33,
                             Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
@@ -2479,9 +2171,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn3.Checked,
                             HoldCourse = checkBoxHoldCourse3.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2492,21 +2184,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2518,7 +2210,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
                         (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 34,
                             Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
@@ -2529,9 +2221,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn4.Checked,
                             HoldCourse = checkBoxHoldCourse4.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2542,21 +2234,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2568,7 +2260,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
                         (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 35,
                             Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
@@ -2579,9 +2271,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn5.Checked,
                             HoldCourse = checkBoxHoldCourse5.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2592,21 +2284,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2618,7 +2310,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
                         (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 36,
                             Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
@@ -2629,9 +2321,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn6.Checked,
                             HoldCourse = checkBoxHoldCourse6.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2642,21 +2334,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2668,7 +2360,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
                         (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 37,
                             Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
@@ -2679,9 +2371,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn7.Checked,
                             HoldCourse = checkBoxHoldCourse7.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2692,21 +2384,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2718,7 +2410,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
                         (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 38,
                             Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
@@ -2729,9 +2421,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn8.Checked,
                             HoldCourse = checkBoxHoldCourse8.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2742,21 +2434,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2768,7 +2460,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
                         (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 39,
                             Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
@@ -2779,9 +2471,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn9.Checked,
                             HoldCourse = checkBoxHoldCourse9.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2792,21 +2484,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2818,7 +2510,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
                         (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 40,
                             Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
@@ -2829,9 +2521,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn10.Checked,
                             HoldCourse = checkBoxHoldCourse10.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2842,21 +2534,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2871,7 +2563,7 @@ namespace ClassBellProject.Gymnasium
                     (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
                     (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 41,
                             Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
@@ -2882,9 +2574,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn1.Checked,
                             HoldCourse = checkBoxHoldCourse1.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2895,21 +2587,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2921,7 +2613,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
                         (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 42,
                             Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
@@ -2932,9 +2624,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn2.Checked,
                             HoldCourse = checkBoxHoldCourse2.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2945,21 +2637,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -2971,7 +2663,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
                         (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 43,
                             Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
@@ -2982,9 +2674,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn3.Checked,
                             HoldCourse = checkBoxHoldCourse3.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -2995,21 +2687,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3021,7 +2713,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
                         (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 44,
                             Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
@@ -3032,9 +2724,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn4.Checked,
                             HoldCourse = checkBoxHoldCourse4.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3045,21 +2737,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3071,7 +2763,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
                         (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 45,
                             Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
@@ -3082,9 +2774,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn5.Checked,
                             HoldCourse = checkBoxHoldCourse5.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3095,21 +2787,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3121,7 +2813,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
                         (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 46,
                             Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
@@ -3132,9 +2824,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn6.Checked,
                             HoldCourse = checkBoxHoldCourse6.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3145,21 +2837,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3171,7 +2863,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
                         (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 47,
                             Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
@@ -3182,9 +2874,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn7.Checked,
                             HoldCourse = checkBoxHoldCourse7.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3195,21 +2887,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3221,7 +2913,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
                         (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 48,
                             Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
@@ -3232,9 +2924,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn8.Checked,
                             HoldCourse = checkBoxHoldCourse8.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3245,21 +2937,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3271,7 +2963,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
                         (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 49,
                             Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
@@ -3282,9 +2974,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn9.Checked,
                             HoldCourse = checkBoxHoldCourse9.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3295,21 +2987,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3321,7 +3013,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
                         (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 50,
                             Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
@@ -3332,9 +3024,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn10.Checked,
                             HoldCourse = checkBoxHoldCourse10.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3345,21 +3037,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3374,7 +3066,7 @@ namespace ClassBellProject.Gymnasium
                     (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
                     (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 51,
                             Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
@@ -3385,9 +3077,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn1.Checked,
                             HoldCourse = checkBoxHoldCourse1.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3398,21 +3090,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3424,7 +3116,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
                         (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 52,
                             Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
@@ -3435,9 +3127,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn2.Checked,
                             HoldCourse = checkBoxHoldCourse2.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3448,21 +3140,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3474,7 +3166,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
                         (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 53,
                             Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
@@ -3485,9 +3177,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn3.Checked,
                             HoldCourse = checkBoxHoldCourse3.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3498,21 +3190,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3524,7 +3216,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
                         (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 54,
                             Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
@@ -3535,9 +3227,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn4.Checked,
                             HoldCourse = checkBoxHoldCourse4.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3548,21 +3240,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3574,7 +3266,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
                         (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 55,
                             Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
@@ -3585,9 +3277,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn5.Checked,
                             HoldCourse = checkBoxHoldCourse5.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3598,21 +3290,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3624,7 +3316,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
                         (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 56,
                             Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
@@ -3635,9 +3327,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn6.Checked,
                             HoldCourse = checkBoxHoldCourse6.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3648,21 +3340,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3674,7 +3366,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
                         (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 57,
                             Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
@@ -3685,9 +3377,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn7.Checked,
                             HoldCourse = checkBoxHoldCourse7.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3698,21 +3390,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3724,7 +3416,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
                         (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 58,
                             Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
@@ -3735,9 +3427,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn8.Checked,
                             HoldCourse = checkBoxHoldCourse8.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3748,21 +3440,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3774,7 +3466,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
                         (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 59,
                             Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
@@ -3785,9 +3477,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn9.Checked,
                             HoldCourse = checkBoxHoldCourse9.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3798,21 +3490,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3824,7 +3516,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
                         (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 60,
                             Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
@@ -3835,9 +3527,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn10.Checked,
                             HoldCourse = checkBoxHoldCourse10.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3848,21 +3540,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3877,7 +3569,7 @@ namespace ClassBellProject.Gymnasium
                     (checkBoxHoldOn1.Checked == false || checkBoxHoldOn1.Checked == true) &&
                     (checkBoxHoldCourse1.Checked == false || checkBoxHoldCourse1.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 61,
                             Start = comboBoxStartHourInterval1.Text + ":" + comboBoxStartMinuteInterval1.Text + ":" + "00" + " " + comboBoxStartFormatInterval1.Text,
@@ -3888,9 +3580,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn1.Checked,
                             HoldCourse = checkBoxHoldCourse1.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3901,21 +3593,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3927,7 +3619,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn2.Checked == false || checkBoxHoldOn2.Checked == true) &&
                         (checkBoxHoldCourse2.Checked == false || checkBoxHoldCourse2.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 62,
                             Start = comboBoxStartHourInterval2.Text + ":" + comboBoxStartMinuteInterval2.Text + ":" + "00" + " " + comboBoxStartFormatInterval2.Text,
@@ -3938,9 +3630,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn2.Checked,
                             HoldCourse = checkBoxHoldCourse2.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -3951,21 +3643,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -3977,7 +3669,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn3.Checked == false || checkBoxHoldOn3.Checked == true) &&
                         (checkBoxHoldCourse3.Checked == false || checkBoxHoldCourse3.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 63,
                             Start = comboBoxStartHourInterval3.Text + ":" + comboBoxStartMinuteInterval3.Text + ":" + "00" + " " + comboBoxStartFormatInterval3.Text,
@@ -3988,9 +3680,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn3.Checked,
                             HoldCourse = checkBoxHoldCourse3.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -4001,21 +3693,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -4027,7 +3719,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn4.Checked == false || checkBoxHoldOn4.Checked == true) &&
                         (checkBoxHoldCourse4.Checked == false || checkBoxHoldCourse4.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 64,
                             Start = comboBoxStartHourInterval4.Text + ":" + comboBoxStartMinuteInterval4.Text + ":" + "00" + " " + comboBoxStartFormatInterval4.Text,
@@ -4038,9 +3730,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn4.Checked,
                             HoldCourse = checkBoxHoldCourse4.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -4051,21 +3743,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -4077,7 +3769,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn5.Checked == false || checkBoxHoldOn5.Checked == true) &&
                         (checkBoxHoldCourse5.Checked == false || checkBoxHoldCourse5.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 65,
                             Start = comboBoxStartHourInterval5.Text + ":" + comboBoxStartMinuteInterval5.Text + ":" + "00" + " " + comboBoxStartFormatInterval5.Text,
@@ -4088,9 +3780,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn5.Checked,
                             HoldCourse = checkBoxHoldCourse5.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -4101,21 +3793,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -4127,7 +3819,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn6.Checked == false || checkBoxHoldOn6.Checked == true) &&
                         (checkBoxHoldCourse6.Checked == false || checkBoxHoldCourse6.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 66,
                             Start = comboBoxStartHourInterval6.Text + ":" + comboBoxStartMinuteInterval6.Text + ":" + "00" + " " + comboBoxStartFormatInterval6.Text,
@@ -4138,9 +3830,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn6.Checked,
                             HoldCourse = checkBoxHoldCourse6.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -4151,21 +3843,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -4177,7 +3869,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn7.Checked == false || checkBoxHoldOn7.Checked == true) &&
                         (checkBoxHoldCourse7.Checked == false || checkBoxHoldCourse7.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 67,
                             Start = comboBoxStartHourInterval7.Text + ":" + comboBoxStartMinuteInterval7.Text + ":" + "00" + " " + comboBoxStartFormatInterval7.Text,
@@ -4188,9 +3880,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn7.Checked,
                             HoldCourse = checkBoxHoldCourse7.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -4201,21 +3893,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -4227,7 +3919,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn8.Checked == false || checkBoxHoldOn8.Checked == true) &&
                         (checkBoxHoldCourse8.Checked == false || checkBoxHoldCourse8.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 68,
                             Start = comboBoxStartHourInterval8.Text + ":" + comboBoxStartMinuteInterval8.Text + ":" + "00" + " " + comboBoxStartFormatInterval8.Text,
@@ -4238,9 +3930,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn8.Checked,
                             HoldCourse = checkBoxHoldCourse8.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -4251,21 +3943,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -4277,7 +3969,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn9.Checked == false || checkBoxHoldOn9.Checked == true) &&
                         (checkBoxHoldCourse9.Checked == false || checkBoxHoldCourse9.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 69,
                             Start = comboBoxStartHourInterval9.Text + ":" + comboBoxStartMinuteInterval9.Text + ":" + "00" + " " + comboBoxStartFormatInterval9.Text,
@@ -4288,9 +3980,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn9.Checked,
                             HoldCourse = checkBoxHoldCourse9.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -4301,21 +3993,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -4327,7 +4019,7 @@ namespace ClassBellProject.Gymnasium
                         (checkBoxHoldOn10.Checked == false || checkBoxHoldOn10.Checked == true) &&
                         (checkBoxHoldCourse10.Checked == false || checkBoxHoldCourse10.Checked == true))
                     {
-                        IntervalsAndChecksGymnasium IntervalsAndChecksGymnasiumObject = new IntervalsAndChecksGymnasium()
+                        TimeInterval TimeIntervalObject = new TimeInterval()
                         {
                             Id = 70,
                             Start = comboBoxStartHourInterval10.Text + ":" + comboBoxStartMinuteInterval10.Text + ":" + "00" + " " + comboBoxStartFormatInterval10.Text,
@@ -4338,9 +4030,9 @@ namespace ClassBellProject.Gymnasium
                             HoldOn = checkBoxHoldOn10.Checked,
                             HoldCourse = checkBoxHoldCourse10.Checked
                         };
-                        IntervalsAndChecksGymnasium.Add(IntervalsAndChecksGymnasiumObject);
+                        TimeInterval.Add(TimeIntervalObject);
                         sqliteCommand = new SqliteCommand(
-                            "update IntervalsAndChecksGymnasium" +
+                            "update TimeInterval" +
                             " set " + "Start" + " = " + "@Start" + ", " +
                                       "Stop" + " = " + "@Stop" + ", " +
                                       "ExitTone" + " = " + "@ExitTone" + ", " +
@@ -4351,21 +4043,21 @@ namespace ClassBellProject.Gymnasium
                                       "where Id = " + "@Id" + ";", sqliteConnection);
 
                         sqliteCommand.Parameters.Add("@Id", SqliteType.Integer);
-                        sqliteCommand.Parameters["@Id"].Value = IntervalsAndChecksGymnasiumObject.Id;
+                        sqliteCommand.Parameters["@Id"].Value = TimeIntervalObject.Id;
                         sqliteCommand.Parameters.Add("@Start", SqliteType.Text);
-                        sqliteCommand.Parameters["@Start"].Value = IntervalsAndChecksGymnasiumObject.Start;
+                        sqliteCommand.Parameters["@Start"].Value = TimeIntervalObject.Start;
                         sqliteCommand.Parameters.Add("@Stop", SqliteType.Text);
-                        sqliteCommand.Parameters["@Stop"].Value = IntervalsAndChecksGymnasiumObject.Stop;
+                        sqliteCommand.Parameters["@Stop"].Value = TimeIntervalObject.Stop;
                         sqliteCommand.Parameters.Add("@ExitTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@ExitTone"].Value = IntervalsAndChecksGymnasiumObject.ExitTone;
+                        sqliteCommand.Parameters["@ExitTone"].Value = TimeIntervalObject.ExitTone;
                         sqliteCommand.Parameters.Add("@EntranceTone", SqliteType.Integer);
-                        sqliteCommand.Parameters["@EntranceTone"].Value = IntervalsAndChecksGymnasiumObject.EntranceTone;
+                        sqliteCommand.Parameters["@EntranceTone"].Value = TimeIntervalObject.EntranceTone;
                         sqliteCommand.Parameters.Add("@HoldMusic", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldMusic"].Value = IntervalsAndChecksGymnasiumObject.HoldMusic;
+                        sqliteCommand.Parameters["@HoldMusic"].Value = TimeIntervalObject.HoldMusic;
                         sqliteCommand.Parameters.Add("@HoldOn", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldOn"].Value = IntervalsAndChecksGymnasiumObject.HoldOn;
+                        sqliteCommand.Parameters["@HoldOn"].Value = TimeIntervalObject.HoldOn;
                         sqliteCommand.Parameters.Add("@HoldCourse", SqliteType.Integer);
-                        sqliteCommand.Parameters["@HoldCourse"].Value = IntervalsAndChecksGymnasiumObject.HoldCourse;
+                        sqliteCommand.Parameters["@HoldCourse"].Value = TimeIntervalObject.HoldCourse;
 
                         sqliteCommand.ExecuteNonQuery();
                     }
@@ -4373,37 +4065,74 @@ namespace ClassBellProject.Gymnasium
             }
         }
 
-        public List<IntervalsAndChecksGymnasium> ReadIntervalsAndChecksGymnasiumFromDatabase()
+        private string GetDatabasePath()
         {
-            string connectionString = @"Data Source=C:\Users\ComputerName\Desktop\ClassBellProject\ClassBellProjectDatabase.db;";
-            SqliteConnection sqliteConnection = new SqliteConnection(connectionString);
-            sqliteConnection.Open();
-            SqliteCommand sqliteCommand = new SqliteCommand("select * from IntervalsAndChecksGymnasium;", sqliteConnection);
-            SqliteDataReader reader = sqliteCommand.ExecuteReader();
-            List<IntervalsAndChecksGymnasium> IntervalsAndChecksGymnasium = new List<IntervalsAndChecksGymnasium>();
-            while (reader.Read())
-            {
-                IntervalsAndChecksGymnasium.Add(new IntervalsAndChecksGymnasium()
-                {
-                    Id = (int)(long)reader.GetValue(0),
-                    DayGymnasiumId = (int)(long)reader.GetValue(1),
-                    Start = reader.GetValue(2).ToString(),
-                    Stop = reader.GetValue(3).ToString(),
-                    ExitTone = (int)(long)reader.GetValue(4) != 0,
-                    EntranceTone = (int)(long)reader.GetValue(5) != 0,
-                    HoldMusic = (int)(long)reader.GetValue(6) != 0,
-                    HoldOn = (int)(long)reader.GetValue(7) != 0,
-                    HoldCourse = (int)(long)reader.GetValue(8) != 0
-                });
-            }
-            sqliteConnection.Close();
+            // Obține folderul unde rulează aplicația (ex: C:\Proiect\Bin\Debug\)
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-            return IntervalsAndChecksGymnasium;
+            // Combină folderul cu numele fișierului bazei de date într-un mod sigur
+            // Path.Combine se ocupă singur de backslash-uri (\)
+            return Path.Combine(baseDirectory, "ClassBellProjectDatabase.db");
         }
+
+        // 1. Definim connection string-ul într-un singur loc (ex: variabilă globală sau setare)
+        private string GetConnectionString()
+        {
+            // Dacă baza de date este în folderul binar al aplicației:
+            return $"Data Source={GetDatabasePath()}";
+        }
+
+        // 2. Metoda unificată care înlocuiește vechea dependență
+        public List<TimeInterval> GetIntervalsAndChecksFromDatabase(int? cycleId = null, int? dayId = null)
+        {
+            var timeIntervals = new List<TimeInterval>();
+
+            using (var connection = new SqliteConnection(GetConnectionString()))
+            {
+                connection.Open();
+
+                // Construim SQL-ul dinamic în funcție de filtre
+                string sql = "SELECT * FROM TimeInterval WHERE 1 = 1";
+                if (cycleId.HasValue) sql += " AND CycleId = @cycleId";
+                if (dayId.HasValue) sql += " AND DayId = @dayId";
+
+                using (var command = new SqliteCommand(sql, connection))
+                {
+                    if (cycleId.HasValue) command.Parameters.AddWithValue("@cycleId", cycleId.Value);
+                    if (dayId.HasValue) command.Parameters.AddWithValue("@dayId", dayId.Value);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            timeIntervals.Add(new TimeInterval
+                            {
+                                Id = reader.GetInt32(0),
+                                CycleId = reader.GetInt32(1),
+                                DayId = reader.GetInt32(2),
+                                Start = reader.GetString(3),
+                                Stop = reader.GetString(4),
+                                ExitTone = reader.GetBoolean(5), // SqliteDataReader știe să facă singur conversia 0/1 -> bool
+                                EntranceTone = reader.GetBoolean(6),
+                                HoldMusic = reader.GetBoolean(7),
+                                HoldOn = reader.GetBoolean(8),
+                                HoldCourse = reader.GetBoolean(9)
+                            });
+                        }
+                    }
+                }
+            }
+
+            return timeIntervals;
+        }
+
+
 
         public void PopulateIntervalsAndChecksSelectingDay()
         {
-            List<IntervalsAndChecksGymnasium> IntervalsAndChecksGymnasium = ReadIntervalsAndChecksGymnasiumFromDatabase();
+            string dayChecked = string.Empty;
+
+            List<TimeInterval> IntervalsAndChecksGymnasium = GetIntervalsAndChecksFromDatabase();
 
             string[] startIntervalComponents;
             string[] timeStartIntervalComponents;
