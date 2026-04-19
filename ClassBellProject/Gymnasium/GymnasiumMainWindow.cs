@@ -205,57 +205,42 @@ namespace ClassBellProject.Gymnasium
                           .ToList();
         }
 
-        private DateTime GetLastRunDateFromDb()
+        private DateTime GetLastRunDateFromDb(string key) // Am adăugat parametrul key
         {
             try
             {
-                // Înlocuiește cu path-ul către fișierul tău .db
                 using (var connection = new SqliteConnection("Data Source=database.db"))
                 {
                     connection.Open();
-                    string query = "SELECT SettingValue FROM ApplicationSettings WHERE SettingKey = 'LastRunDatePrimary'";
+                    string query = "SELECT SettingValue FROM ApplicationSettings WHERE SettingKey = @key";
                     using (var command = new SqliteCommand(query, connection))
                     {
+                        command.Parameters.AddWithValue("@key", key);
                         var result = command.ExecuteScalar();
-                        if (result != null && result != DBNull.Value)
-                        {
-                            return DateTime.Parse(result.ToString());
-                        }
+                        return result != null ? DateTime.Parse(result.ToString()) : DateTime.MinValue;
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Eroare la citire SQLite: {ex.Message}");
-            }
-            return DateTime.MinValue;
+            catch { return DateTime.MinValue; }
         }
 
-        private void UpdateLastRunDateInDb(DateTime date)
+        private void UpdateLastRunDateInDb(string key, DateTime date) // Am adăugat parametrul key
         {
             try
             {
                 using (var connection = new SqliteConnection("Data Source=database.db"))
                 {
                     connection.Open();
-                    // SQLite folosește funcția datetime('now') pentru LastUpdated
-                    string query = @"UPDATE ApplicationSettings 
-                             SET SettingValue = @val, 
-                                 LastUpdated = datetime('now') 
-                             WHERE SettingKey = 'LastRunDatePrimary'";
-
+                    string query = "UPDATE ApplicationSettings SET SettingValue = @val, LastUpdated = datetime('now') WHERE SettingKey = @key";
                     using (var command = new SqliteCommand(query, connection))
                     {
-                        // Salvăm data în format string (cel mai sigur pentru SQLite)
                         command.Parameters.AddWithValue("@val", date.ToString("yyyy-MM-dd"));
+                        command.Parameters.AddWithValue("@key", key);
                         command.ExecuteNonQuery();
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Eroare la scriere SQLite: {ex.Message}");
-            }
+            catch { /* Log error */ }
         }
 
         // Această variabilă trebuie să fie declarată în afara metodei, 
@@ -265,7 +250,7 @@ namespace ClassBellProject.Gymnasium
         public async Task StartSongsAndTonesGymnasiumAsync(CancellationToken token)
         {
             // PASUL 1: Citirea inițială din DB la pornirea aplicației
-            _lastRunDatePrimary = GetLastRunDateFromDb();
+            _lastRunDatePrimary = GetLastRunDateFromDb("LastRunDateGymnasium");
 
             while (!token.IsCancellationRequested)
             {
@@ -286,7 +271,7 @@ namespace ClassBellProject.Gymnasium
                         _lastRunDatePrimary = now.Date;
 
                         // SALVARE ÎN DB: Marcăm ziua ca procesată deși nu am cântat nimic (e prea târziu)
-                        UpdateLastRunDateInDb(_lastRunDatePrimary);
+                        UpdateLastRunDateInDb("LastRunDateGymnasium", _lastRunDatePrimary);
 
                         await Task.Delay(TimeSpan.FromMinutes(30), token);
 
@@ -353,7 +338,7 @@ namespace ClassBellProject.Gymnasium
                     _lastRunDatePrimary = DateTime.Today;
 
                     // SALVARE ÎN DB: Ziua s-a încheiat cu succes
-                    UpdateLastRunDateInDb(_lastRunDatePrimary);
+                    UpdateLastRunDateInDb("LastRunDateGymnasium", _lastRunDatePrimary);
                 }
                 else
                 {
