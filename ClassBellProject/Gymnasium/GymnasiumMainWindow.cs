@@ -222,7 +222,7 @@ namespace ClassBellProject.Gymnasium
 
                 if (daysSelected.Contains(today) && _lastRunDateGymnasium.Date != now.Date)
                 {
-                    var intervals = GetIntervalsAndChecksFromDatabase(0, (int)now.DayOfWeek);
+                    var intervals = GetIntervalsAndChecksFromDatabase(1, (int)now.DayOfWeek);
 
                     var lastInterval = intervals.Where(x => x.Start != "" && x.Stop != "").LastOrDefault();
                     DateTime lastTodayHour = lastInterval != null ? DateTime.Parse(lastInterval.Stop) : DateTime.MinValue;
@@ -427,6 +427,21 @@ namespace ClassBellProject.Gymnasium
                 List<TimeInterval> TimeInterval = new List<TimeInterval>();
 
                 string dayChecked = listBoxSelectDayGymnasium.SelectedItem.ToString();
+
+                // Dicționar pentru conversie rapidă
+                var daysConversion = new Dictionary<string, int>
+                {
+                    { "Luni", 1 },
+                    { "Marti", 2 },
+                    { "Miercuri", 3 },
+                    { "Joi", 4 },
+                    { "Vineri", 5 },
+                    { "Sambata", 6 },
+                    { "Duminica", 7 }
+                };
+
+                List<TimeInterval> IntervalsAndChecksGymnasium = GetIntervalsAndChecksFromDatabase(1, daysConversion[dayChecked]);
+
                 switch (dayChecked)
                 {
                     case "Luni":
@@ -4018,8 +4033,6 @@ namespace ClassBellProject.Gymnasium
 
         public void PopulateIntervalsAndChecksSelectingDay()
         {
-            List<TimeInterval> IntervalsAndChecksGymnasium = GetIntervalsAndChecksFromDatabase();
-
             string[] startIntervalComponents;
             string[] timeStartIntervalComponents;
             string[] stopIntervalComponents;
@@ -4027,11 +4040,24 @@ namespace ClassBellProject.Gymnasium
 
             string dayChecked = listBoxSelectDayGymnasium.SelectedItem.ToString();
 
+            // Dicționar pentru conversie rapidă
+            var daysConversion = new Dictionary<string, int>
+            {
+                { "Luni", 1 },
+                { "Marti", 2 },
+                { "Miercuri", 3 },
+                { "Joi", 4 },
+                { "Vineri", 5 },
+                { "Sambata", 6 },
+                { "Duminica", 7 }
+            };
+
+            List<TimeInterval> IntervalsAndChecksGymnasium = GetIntervalsAndChecksFromDatabase(1, daysConversion[dayChecked]);
+
             switch (dayChecked)
             {
                 case "Luni":
-                    if (IntervalsAndChecksGymnasium[0].Start != "" && IntervalsAndChecksGymnasium[0].Stop != "" &&
-                        IntervalsAndChecksGymnasium[0].Id == 1)
+                    if (IntervalsAndChecksGymnasium[0].Start != "" && IntervalsAndChecksGymnasium[0].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[0].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4050,8 +4076,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse1.Checked = IntervalsAndChecksGymnasium[0].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[1].Start != "" && IntervalsAndChecksGymnasium[1].Stop != "" &&
-                        IntervalsAndChecksGymnasium[1].Id == 2)
+                    if (IntervalsAndChecksGymnasium[1].Start != "" && IntervalsAndChecksGymnasium[1].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[1].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4070,8 +4095,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse2.Checked = IntervalsAndChecksGymnasium[1].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[2].Start != "" && IntervalsAndChecksGymnasium[2].Stop != "" &&
-                        IntervalsAndChecksGymnasium[2].Id == 3)
+                    if (IntervalsAndChecksGymnasium[2].Start != "" && IntervalsAndChecksGymnasium[2].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[2].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4090,8 +4114,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse3.Checked = IntervalsAndChecksGymnasium[2].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[3].Start != "" && IntervalsAndChecksGymnasium[3].Stop != "" && 
-                        IntervalsAndChecksGymnasium[3].Id == 4)
+                    if (IntervalsAndChecksGymnasium[3].Start != "" && IntervalsAndChecksGymnasium[3].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[3].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4110,8 +4133,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse4.Checked = IntervalsAndChecksGymnasium[3].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[4].Start != "" && IntervalsAndChecksGymnasium[4].Stop != "" &&
-                        IntervalsAndChecksGymnasium[4].Id == 5)
+                    if (IntervalsAndChecksGymnasium[4].Start != "" && IntervalsAndChecksGymnasium[4].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[4].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4130,8 +4152,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse5.Checked = IntervalsAndChecksGymnasium[4].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[5].Start != "" && IntervalsAndChecksGymnasium[5].Stop != "" &&
-                        IntervalsAndChecksGymnasium[5].Id == 6)
+                    if (IntervalsAndChecksGymnasium[5].Start != "" && IntervalsAndChecksGymnasium[5].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[5].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4150,8 +4171,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse6.Checked = IntervalsAndChecksGymnasium[5].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[6].Start != "" && IntervalsAndChecksGymnasium[6].Stop != "" &&
-                        IntervalsAndChecksGymnasium[6].Id == 7)
+                    if (IntervalsAndChecksGymnasium[6].Start != "" && IntervalsAndChecksGymnasium[6].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[6].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4170,8 +4190,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse7.Checked = IntervalsAndChecksGymnasium[6].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[7].Start != "" && IntervalsAndChecksGymnasium[7].Stop != "" &&
-                        IntervalsAndChecksGymnasium[7].Id == 8)
+                    if (IntervalsAndChecksGymnasium[7].Start != "" && IntervalsAndChecksGymnasium[7].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[7].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4190,8 +4209,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse8.Checked = IntervalsAndChecksGymnasium[7].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[8].Start != "" && IntervalsAndChecksGymnasium[8].Stop != "" &&
-                        IntervalsAndChecksGymnasium[8].Id == 9)
+                    if (IntervalsAndChecksGymnasium[8].Start != "" && IntervalsAndChecksGymnasium[8].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[8].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4210,8 +4228,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse9.Checked = IntervalsAndChecksGymnasium[8].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[9].Start != "" && IntervalsAndChecksGymnasium[9].Stop != "" &&
-                        IntervalsAndChecksGymnasium[9].Id == 10)
+                    if (IntervalsAndChecksGymnasium[9].Start != "" && IntervalsAndChecksGymnasium[9].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[9].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4233,28 +4250,26 @@ namespace ClassBellProject.Gymnasium
                     break;
 
                 case "Marti":
-                    if (IntervalsAndChecksGymnasium[10].Start != "" && IntervalsAndChecksGymnasium[10].Stop != "" &&
-                        IntervalsAndChecksGymnasium[10].Id == 11)
+                    if (IntervalsAndChecksGymnasium[0].Start != "" && IntervalsAndChecksGymnasium[0].Stop != "")
                     {
-                        startIntervalComponents = IntervalsAndChecksGymnasium[10].Start.Split(' ');
+                        startIntervalComponents = IntervalsAndChecksGymnasium[0].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
-                        comboBoxStartHourInterval1.SelectedItem = timeStartIntervalComponents[0];
-                        comboBoxStartMinuteInterval1.SelectedItem = timeStartIntervalComponents[1];
-                        comboBoxStartFormatInterval1.SelectedItem = startIntervalComponents[1];
-                        stopIntervalComponents = IntervalsAndChecksGymnasium[10].Stop.Split(' ');
+                        comboBoxStartHourInterval5.SelectedItem = timeStartIntervalComponents[0];
+                        comboBoxStartMinuteInterval5.SelectedItem = timeStartIntervalComponents[1];
+                        comboBoxStartFormatInterval5.SelectedItem = startIntervalComponents[1];
+                        stopIntervalComponents = IntervalsAndChecksGymnasium[0].Stop.Split(' ');
                         timeStopIntervalComponents = stopIntervalComponents[0].Split(':');
-                        comboBoxStopHourInterval1.SelectedItem = timeStopIntervalComponents[0];
-                        comboBoxStopMinuteInterval1.SelectedItem = timeStopIntervalComponents[1];
-                        comboBoxStopFormatInterval1.SelectedItem = stopIntervalComponents[1];
-                        checkBoxExitTone1.Checked = IntervalsAndChecksGymnasium[10].ExitTone;
-                        checkBoxEntranceTone1.Checked = IntervalsAndChecksGymnasium[10].EntranceTone;
-                        checkBoxHoldMusic1.Checked = IntervalsAndChecksGymnasium[10].HoldMusic;
-                        checkBoxHoldOn1.Checked = IntervalsAndChecksGymnasium[10].HoldOn;
-                        checkBoxHoldCourse1.Checked = IntervalsAndChecksGymnasium[10].HoldCourse;
+                        comboBoxStopHourInterval5.SelectedItem = timeStopIntervalComponents[0];
+                        comboBoxStopMinuteInterval5.SelectedItem = timeStopIntervalComponents[1];
+                        comboBoxStopFormatInterval5.SelectedItem = stopIntervalComponents[1];
+                        checkBoxExitTone5.Checked = IntervalsAndChecksGymnasium[0].ExitTone;
+                        checkBoxEntranceTone5.Checked = IntervalsAndChecksGymnasium[0].EntranceTone;
+                        checkBoxHoldMusic5.Checked = IntervalsAndChecksGymnasium[0].HoldMusic;
+                        checkBoxHoldOn5.Checked = IntervalsAndChecksGymnasium[0].HoldOn;
+                        checkBoxHoldCourse5.Checked = IntervalsAndChecksGymnasium[0].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[11].Start != "" && IntervalsAndChecksGymnasium[11].Stop != "" &&
-                        IntervalsAndChecksGymnasium[11].Id == 12)
+                    if (IntervalsAndChecksGymnasium[1].Start != "" && IntervalsAndChecksGymnasium[1].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[11].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4273,8 +4288,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse2.Checked = IntervalsAndChecksGymnasium[11].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[12].Start != "" && IntervalsAndChecksGymnasium[12].Stop != "" &&
-                        IntervalsAndChecksGymnasium[12].Id == 13)
+                    if (IntervalsAndChecksGymnasium[2].Start != "" && IntervalsAndChecksGymnasium[2].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[12].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4293,8 +4307,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse3.Checked = IntervalsAndChecksGymnasium[12].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[13].Start != "" && IntervalsAndChecksGymnasium[13].Stop != "" &&
-                        IntervalsAndChecksGymnasium[13].Id == 14)
+                    if (IntervalsAndChecksGymnasium[3].Start != "" && IntervalsAndChecksGymnasium[3].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[13].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4313,8 +4326,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse4.Checked = IntervalsAndChecksGymnasium[13].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[14].Start != "" && IntervalsAndChecksGymnasium[14].Stop != "" &&
-                        IntervalsAndChecksGymnasium[14].Id == 15)
+                    if (IntervalsAndChecksGymnasium[4].Start != "" && IntervalsAndChecksGymnasium[4].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[14].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4333,8 +4345,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse5.Checked = IntervalsAndChecksGymnasium[14].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[15].Start != "" && IntervalsAndChecksGymnasium[15].Stop != "" &&
-                        IntervalsAndChecksGymnasium[15].Id == 16)
+                    if (IntervalsAndChecksGymnasium[5].Start != "" && IntervalsAndChecksGymnasium[5].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[15].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4353,8 +4364,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse6.Checked = IntervalsAndChecksGymnasium[15].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[16].Start != "" && IntervalsAndChecksGymnasium[16].Stop != "" &&
-                        IntervalsAndChecksGymnasium[16].Id == 17)
+                    if (IntervalsAndChecksGymnasium[6].Start != "" && IntervalsAndChecksGymnasium[6].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[16].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4373,8 +4383,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse7.Checked = IntervalsAndChecksGymnasium[16].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[17].Start != "" && IntervalsAndChecksGymnasium[17].Stop != "" &&
-                        IntervalsAndChecksGymnasium[17].Id == 18)
+                    if (IntervalsAndChecksGymnasium[7].Start != "" && IntervalsAndChecksGymnasium[7].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[17].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4393,8 +4402,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse8.Checked = IntervalsAndChecksGymnasium[17].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[18].Start != "" && IntervalsAndChecksGymnasium[18].Stop != "" &&
-                        IntervalsAndChecksGymnasium[18].Id == 19)
+                    if (IntervalsAndChecksGymnasium[8].Start != "" && IntervalsAndChecksGymnasium[8].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[18].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4413,8 +4421,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse9.Checked = IntervalsAndChecksGymnasium[18].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[19].Start != "" && IntervalsAndChecksGymnasium[19].Stop != "" &&
-                        IntervalsAndChecksGymnasium[19].Id == 20)
+                    if (IntervalsAndChecksGymnasium[9].Start != "" && IntervalsAndChecksGymnasium[9].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[19].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4436,8 +4443,7 @@ namespace ClassBellProject.Gymnasium
                     break;
 
                 case "Miercuri":
-                    if (IntervalsAndChecksGymnasium[20].Start != "" && IntervalsAndChecksGymnasium[20].Stop != "" &&
-                        IntervalsAndChecksGymnasium[20].Id == 21)
+                    if (IntervalsAndChecksGymnasium[20].Start != "" && IntervalsAndChecksGymnasium[20].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[20].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4456,8 +4462,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse1.Checked = IntervalsAndChecksGymnasium[20].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[21].Start != "" && IntervalsAndChecksGymnasium[21].Stop != "" &&
-                        IntervalsAndChecksGymnasium[21].Id == 22)
+                    if (IntervalsAndChecksGymnasium[21].Start != "" && IntervalsAndChecksGymnasium[21].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[21].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4476,8 +4481,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse2.Checked = IntervalsAndChecksGymnasium[21].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[22].Start != "" && IntervalsAndChecksGymnasium[22].Stop != "" &&
-                        IntervalsAndChecksGymnasium[22].Id == 23)
+                    if (IntervalsAndChecksGymnasium[22].Start != "" && IntervalsAndChecksGymnasium[22].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[22].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4496,8 +4500,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse3.Checked = IntervalsAndChecksGymnasium[22].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[23].Start != "" && IntervalsAndChecksGymnasium[23].Stop != "" &&
-                        IntervalsAndChecksGymnasium[23].Id == 24)
+                    if (IntervalsAndChecksGymnasium[23].Start != "" && IntervalsAndChecksGymnasium[23].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[23].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4516,8 +4519,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse4.Checked = IntervalsAndChecksGymnasium[23].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[24].Start != "" && IntervalsAndChecksGymnasium[24].Stop != "" &&
-                        IntervalsAndChecksGymnasium[24].Id == 25)
+                    if (IntervalsAndChecksGymnasium[24].Start != "" && IntervalsAndChecksGymnasium[24].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[24].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4536,8 +4538,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse5.Checked = IntervalsAndChecksGymnasium[24].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[25].Start != "" && IntervalsAndChecksGymnasium[25].Stop != "" &&
-                        IntervalsAndChecksGymnasium[25].Id == 26)
+                    if (IntervalsAndChecksGymnasium[25].Start != "" && IntervalsAndChecksGymnasium[25].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[25].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4556,8 +4557,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse6.Checked = IntervalsAndChecksGymnasium[25].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[26].Start != "" && IntervalsAndChecksGymnasium[26].Stop != "" &&
-                        IntervalsAndChecksGymnasium[26].Id == 27)
+                    if (IntervalsAndChecksGymnasium[26].Start != "" && IntervalsAndChecksGymnasium[26].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[26].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4576,8 +4576,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse7.Checked = IntervalsAndChecksGymnasium[26].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[27].Start != "" && IntervalsAndChecksGymnasium[27].Stop != "" &&
-                        IntervalsAndChecksGymnasium[27].Id == 28)
+                    if (IntervalsAndChecksGymnasium[27].Start != "" && IntervalsAndChecksGymnasium[27].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[27].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4596,8 +4595,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse8.Checked = IntervalsAndChecksGymnasium[27].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[28].Start != "" && IntervalsAndChecksGymnasium[28].Stop != "" &&
-                        IntervalsAndChecksGymnasium[28].Id == 29)
+                    if (IntervalsAndChecksGymnasium[28].Start != "" && IntervalsAndChecksGymnasium[28].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[28].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4616,8 +4614,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse9.Checked = IntervalsAndChecksGymnasium[28].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[29].Start != "" && IntervalsAndChecksGymnasium[29].Stop != "" &&
-                        IntervalsAndChecksGymnasium[29].Id == 30)
+                    if (IntervalsAndChecksGymnasium[29].Start != "" && IntervalsAndChecksGymnasium[29].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[29].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4639,8 +4636,7 @@ namespace ClassBellProject.Gymnasium
                     break;
 
                 case "Joi":
-                    if (IntervalsAndChecksGymnasium[30].Start != "" && IntervalsAndChecksGymnasium[30].Stop != "" &&
-                        IntervalsAndChecksGymnasium[30].Id == 31)
+                    if (IntervalsAndChecksGymnasium[30].Start != "" && IntervalsAndChecksGymnasium[30].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[30].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4659,8 +4655,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse1.Checked = IntervalsAndChecksGymnasium[30].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[31].Start != "" && IntervalsAndChecksGymnasium[31].Stop != "" &&
-                        IntervalsAndChecksGymnasium[31].Id == 32)
+                    if (IntervalsAndChecksGymnasium[31].Start != "" && IntervalsAndChecksGymnasium[31].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[31].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4679,8 +4674,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse2.Checked = IntervalsAndChecksGymnasium[31].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[32].Start != "" && IntervalsAndChecksGymnasium[32].Stop != "" &&
-                        IntervalsAndChecksGymnasium[32].Id == 33)
+                    if (IntervalsAndChecksGymnasium[32].Start != "" && IntervalsAndChecksGymnasium[32].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[32].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4699,8 +4693,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse3.Checked = IntervalsAndChecksGymnasium[32].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[33].Start != "" && IntervalsAndChecksGymnasium[33].Stop != "" &&
-                        IntervalsAndChecksGymnasium[33].Id == 34)
+                    if (IntervalsAndChecksGymnasium[33].Start != "" && IntervalsAndChecksGymnasium[33].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[33].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4719,8 +4712,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse4.Checked = IntervalsAndChecksGymnasium[33].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[34].Start != "" && IntervalsAndChecksGymnasium[34].Stop != "" &&
-                        IntervalsAndChecksGymnasium[34].Id == 35)
+                    if (IntervalsAndChecksGymnasium[34].Start != "" && IntervalsAndChecksGymnasium[34].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[34].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4739,8 +4731,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse5.Checked = IntervalsAndChecksGymnasium[34].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[35].Start != "" && IntervalsAndChecksGymnasium[35].Stop != "" &&
-                        IntervalsAndChecksGymnasium[35].Id == 36)
+                    if (IntervalsAndChecksGymnasium[35].Start != "" && IntervalsAndChecksGymnasium[35].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[35].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4759,8 +4750,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse6.Checked = IntervalsAndChecksGymnasium[35].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[36].Start != "" && IntervalsAndChecksGymnasium[36].Stop != "" &&
-                        IntervalsAndChecksGymnasium[36].Id == 37)
+                    if (IntervalsAndChecksGymnasium[36].Start != "" && IntervalsAndChecksGymnasium[36].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[36].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4779,8 +4769,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse7.Checked = IntervalsAndChecksGymnasium[36].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[37].Start != "" && IntervalsAndChecksGymnasium[37].Stop != "" &&
-                        IntervalsAndChecksGymnasium[37].Id == 38)
+                    if (IntervalsAndChecksGymnasium[37].Start != "" && IntervalsAndChecksGymnasium[37].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[37].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4799,8 +4788,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse8.Checked = IntervalsAndChecksGymnasium[37].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[38].Start != "" && IntervalsAndChecksGymnasium[38].Stop != "" &&
-                        IntervalsAndChecksGymnasium[38].Id == 39)
+                    if (IntervalsAndChecksGymnasium[38].Start != "" && IntervalsAndChecksGymnasium[38].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[38].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4819,8 +4807,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse9.Checked = IntervalsAndChecksGymnasium[38].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[39].Start != "" && IntervalsAndChecksGymnasium[39].Stop != "" &&
-                        IntervalsAndChecksGymnasium[39].Id == 40)
+                    if (IntervalsAndChecksGymnasium[39].Start != "" && IntervalsAndChecksGymnasium[39].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[39].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4842,8 +4829,7 @@ namespace ClassBellProject.Gymnasium
                     break;
 
                 case "Vineri":
-                    if (IntervalsAndChecksGymnasium[40].Start != "" && IntervalsAndChecksGymnasium[40].Stop != "" &&
-                        IntervalsAndChecksGymnasium[40].Id == 41)
+                    if (IntervalsAndChecksGymnasium[40].Start != "" && IntervalsAndChecksGymnasium[40].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[40].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4862,8 +4848,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse1.Checked = IntervalsAndChecksGymnasium[40].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[41].Start != "" && IntervalsAndChecksGymnasium[41].Stop != "" &&
-                        IntervalsAndChecksGymnasium[41].Id == 42)
+                    if (IntervalsAndChecksGymnasium[41].Start != "" && IntervalsAndChecksGymnasium[41].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[41].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4882,8 +4867,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse2.Checked = IntervalsAndChecksGymnasium[41].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[42].Start != "" && IntervalsAndChecksGymnasium[42].Stop != "" &&
-                        IntervalsAndChecksGymnasium[42].Id == 43)
+                    if (IntervalsAndChecksGymnasium[42].Start != "" && IntervalsAndChecksGymnasium[42].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[42].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4902,8 +4886,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse3.Checked = IntervalsAndChecksGymnasium[42].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[43].Start != "" && IntervalsAndChecksGymnasium[43].Stop != "" &&
-                        IntervalsAndChecksGymnasium[43].Id == 44)
+                    if (IntervalsAndChecksGymnasium[43].Start != "" && IntervalsAndChecksGymnasium[43].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[43].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4922,8 +4905,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse4.Checked = IntervalsAndChecksGymnasium[43].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[44].Start != "" && IntervalsAndChecksGymnasium[44].Stop != "" &&
-                        IntervalsAndChecksGymnasium[44].Id == 45)
+                    if (IntervalsAndChecksGymnasium[44].Start != "" && IntervalsAndChecksGymnasium[44].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[44].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4942,8 +4924,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse5.Checked = IntervalsAndChecksGymnasium[44].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[45].Start != "" && IntervalsAndChecksGymnasium[45].Stop != "" &&
-                        IntervalsAndChecksGymnasium[45].Id == 46)
+                    if (IntervalsAndChecksGymnasium[45].Start != "" && IntervalsAndChecksGymnasium[45].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[45].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4962,8 +4943,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse6.Checked = IntervalsAndChecksGymnasium[45].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[46].Start != "" && IntervalsAndChecksGymnasium[46].Stop != "" &&
-                        IntervalsAndChecksGymnasium[46].Id == 47)
+                    if (IntervalsAndChecksGymnasium[46].Start != "" && IntervalsAndChecksGymnasium[46].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[46].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -4982,8 +4962,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse7.Checked = IntervalsAndChecksGymnasium[46].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[47].Start != "" && IntervalsAndChecksGymnasium[47].Stop != "" &&
-                        IntervalsAndChecksGymnasium[47].Id == 48)
+                    if (IntervalsAndChecksGymnasium[47].Start != "" && IntervalsAndChecksGymnasium[47].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[47].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5002,8 +4981,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse8.Checked = IntervalsAndChecksGymnasium[47].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[48].Start != "" && IntervalsAndChecksGymnasium[48].Stop != "" &&
-                        IntervalsAndChecksGymnasium[48].Id == 49)
+                    if (IntervalsAndChecksGymnasium[48].Start != "" && IntervalsAndChecksGymnasium[48].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[48].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5022,8 +5000,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse9.Checked = IntervalsAndChecksGymnasium[48].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[49].Start != "" && IntervalsAndChecksGymnasium[49].Stop != "" &&
-                        IntervalsAndChecksGymnasium[49].Id == 50)
+                    if (IntervalsAndChecksGymnasium[49].Start != "" && IntervalsAndChecksGymnasium[49].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[49].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5045,8 +5022,7 @@ namespace ClassBellProject.Gymnasium
                     break;
 
                 case "Sambata":
-                    if (IntervalsAndChecksGymnasium[50].Start != "" && IntervalsAndChecksGymnasium[50].Stop != "" &&
-                        IntervalsAndChecksGymnasium[50].Id == 51)
+                    if (IntervalsAndChecksGymnasium[50].Start != "" && IntervalsAndChecksGymnasium[50].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[50].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5065,8 +5041,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse1.Checked = IntervalsAndChecksGymnasium[50].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[51].Start != "" && IntervalsAndChecksGymnasium[51].Stop != "" &&
-                        IntervalsAndChecksGymnasium[51].Id == 52)
+                    if (IntervalsAndChecksGymnasium[51].Start != "" && IntervalsAndChecksGymnasium[51].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[51].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5085,8 +5060,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse2.Checked = IntervalsAndChecksGymnasium[51].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[52].Start != "" && IntervalsAndChecksGymnasium[52].Stop != "" && 
-                        IntervalsAndChecksGymnasium[52].Id == 53)
+                    if (IntervalsAndChecksGymnasium[52].Start != "" && IntervalsAndChecksGymnasium[52].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[52].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5105,8 +5079,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse3.Checked = IntervalsAndChecksGymnasium[52].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[53].Start != "" && IntervalsAndChecksGymnasium[53].Stop != "" &&
-                        IntervalsAndChecksGymnasium[53].Id == 54)
+                    if (IntervalsAndChecksGymnasium[53].Start != "" && IntervalsAndChecksGymnasium[53].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[53].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5125,8 +5098,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse4.Checked = IntervalsAndChecksGymnasium[53].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[54].Start != "" && IntervalsAndChecksGymnasium[54].Stop != "" &&
-                        IntervalsAndChecksGymnasium[54].Id == 55)
+                    if (IntervalsAndChecksGymnasium[54].Start != "" && IntervalsAndChecksGymnasium[54].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[54].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5145,8 +5117,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse5.Checked = IntervalsAndChecksGymnasium[54].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[55].Start != "" && IntervalsAndChecksGymnasium[55].Stop != "" &&
-                        IntervalsAndChecksGymnasium[55].Id == 56)
+                    if (IntervalsAndChecksGymnasium[55].Start != "" && IntervalsAndChecksGymnasium[55].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[55].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5165,8 +5136,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse6.Checked = IntervalsAndChecksGymnasium[55].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[56].Start != "" && IntervalsAndChecksGymnasium[56].Stop != "" &&
-                        IntervalsAndChecksGymnasium[56].Id == 57)
+                    if (IntervalsAndChecksGymnasium[56].Start != "" && IntervalsAndChecksGymnasium[56].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[56].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5185,8 +5155,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse7.Checked = IntervalsAndChecksGymnasium[56].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[57].Start != "" && IntervalsAndChecksGymnasium[57].Stop != "" &&
-                        IntervalsAndChecksGymnasium[57].Id == 58)
+                    if (IntervalsAndChecksGymnasium[57].Start != "" && IntervalsAndChecksGymnasium[57].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[57].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5205,8 +5174,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse8.Checked = IntervalsAndChecksGymnasium[57].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[58].Start != "" && IntervalsAndChecksGymnasium[58].Stop != "" &&
-                        IntervalsAndChecksGymnasium[58].Id == 59)
+                    if (IntervalsAndChecksGymnasium[58].Start != "" && IntervalsAndChecksGymnasium[58].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[58].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5225,8 +5193,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse9.Checked = IntervalsAndChecksGymnasium[58].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[59].Start != "" && IntervalsAndChecksGymnasium[59].Stop != "" &&
-                        IntervalsAndChecksGymnasium[59].Id == 60)
+                    if (IntervalsAndChecksGymnasium[59].Start != "" && IntervalsAndChecksGymnasium[59].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[59].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5248,8 +5215,7 @@ namespace ClassBellProject.Gymnasium
                     break;
 
                 case "Duminica":
-                    if (IntervalsAndChecksGymnasium[60].Start != "" && IntervalsAndChecksGymnasium[60].Stop != "" &&
-                        IntervalsAndChecksGymnasium[60].Id == 61)
+                    if (IntervalsAndChecksGymnasium[60].Start != "" && IntervalsAndChecksGymnasium[60].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[60].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5268,8 +5234,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse1.Checked = IntervalsAndChecksGymnasium[60].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[61].Start != "" && IntervalsAndChecksGymnasium[61].Stop != "" &&
-                        IntervalsAndChecksGymnasium[61].Id == 62)
+                    if (IntervalsAndChecksGymnasium[61].Start != "" && IntervalsAndChecksGymnasium[61].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[61].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5288,8 +5253,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse2.Checked = IntervalsAndChecksGymnasium[61].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[62].Start != "" && IntervalsAndChecksGymnasium[62].Stop != "" &&
-                        IntervalsAndChecksGymnasium[62].Id == 63)
+                    if (IntervalsAndChecksGymnasium[62].Start != "" && IntervalsAndChecksGymnasium[62].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[62].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5308,8 +5272,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse3.Checked = IntervalsAndChecksGymnasium[62].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[63].Start != "" && IntervalsAndChecksGymnasium[63].Stop != "" &&
-                        IntervalsAndChecksGymnasium[63].Id == 64)
+                    if (IntervalsAndChecksGymnasium[63].Start != "" && IntervalsAndChecksGymnasium[63].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[63].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5328,8 +5291,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse4.Checked = IntervalsAndChecksGymnasium[63].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[64].Start != "" && IntervalsAndChecksGymnasium[64].Stop != "" &&
-                        IntervalsAndChecksGymnasium[64].Id == 65)
+                    if (IntervalsAndChecksGymnasium[64].Start != "" && IntervalsAndChecksGymnasium[64].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[64].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5348,8 +5310,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse5.Checked = IntervalsAndChecksGymnasium[64].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[65].Start != "" && IntervalsAndChecksGymnasium[65].Stop != "" &&
-                        IntervalsAndChecksGymnasium[65].Id == 66)
+                    if (IntervalsAndChecksGymnasium[65].Start != "" && IntervalsAndChecksGymnasium[65].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[65].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5368,8 +5329,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse6.Checked = IntervalsAndChecksGymnasium[65].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[66].Start != "" && IntervalsAndChecksGymnasium[66].Stop != "" &&
-                        IntervalsAndChecksGymnasium[66].Id == 67)
+                    if (IntervalsAndChecksGymnasium[66].Start != "" && IntervalsAndChecksGymnasium[66].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[66].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5388,8 +5348,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse7.Checked = IntervalsAndChecksGymnasium[66].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[67].Start != "" && IntervalsAndChecksGymnasium[67].Stop != "" &&
-                        IntervalsAndChecksGymnasium[67].Id == 68)
+                    if (IntervalsAndChecksGymnasium[67].Start != "" && IntervalsAndChecksGymnasium[67].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[67].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5408,8 +5367,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse8.Checked = IntervalsAndChecksGymnasium[67].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[68].Start != "" && IntervalsAndChecksGymnasium[68].Stop != "" &&
-                        IntervalsAndChecksGymnasium[68].Id == 69)
+                    if (IntervalsAndChecksGymnasium[68].Start != "" && IntervalsAndChecksGymnasium[68].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[68].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');
@@ -5428,8 +5386,7 @@ namespace ClassBellProject.Gymnasium
                         checkBoxHoldCourse9.Checked = IntervalsAndChecksGymnasium[68].HoldCourse;
                     }
 
-                    if (IntervalsAndChecksGymnasium[69].Start != "" && IntervalsAndChecksGymnasium[69].Stop != "" &&
-                        IntervalsAndChecksGymnasium[69].Id == 70)
+                    if (IntervalsAndChecksGymnasium[69].Start != "" && IntervalsAndChecksGymnasium[69].Stop != "")
                     {
                         startIntervalComponents = IntervalsAndChecksGymnasium[69].Start.Split(' ');
                         timeStartIntervalComponents = startIntervalComponents[0].Split(':');

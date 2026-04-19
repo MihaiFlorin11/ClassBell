@@ -4015,7 +4015,7 @@ namespace ClassBellProject.Primary
 
         public void PopulateIntervalsAndChecksSelectingDay()
         {
-            List<TimeInterval> IntervalsAndChecksPrimary = GetIntervalsAndChecksFromDatabase();
+            List<TimeInterval> IntervalsAndChecksPrimary = GetIntervalsAndChecksFromDatabase(0, null);
 
             string[] startIntervalComponents;
             string[] timeStartIntervalComponents;
