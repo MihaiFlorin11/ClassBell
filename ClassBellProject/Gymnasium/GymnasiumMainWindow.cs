@@ -180,6 +180,10 @@ namespace ClassBellProject.Gymnasium
             "PM"
         };
 
+        public string[] GetAllSongsGymnasium() => GetFilesFromFolder("Songs Gymnasium");
+
+        public string[] GetAllTonesGymnasium() => GetFilesFromFolder("Tones Gymnasium");
+
         public List<string> GetDaysSelectedForGymnasium()
         {
             // Dicționar pentru conversie rapidă
@@ -201,44 +205,101 @@ namespace ClassBellProject.Gymnasium
                           .ToList();
         }
 
-        public string[] GetAllSongsGymnasium() => GetFilesFromFolder("Songs Gymnasium");
+        private DateTime GetLastRunDateFromDb()
+        {
+            try
+            {
+                // Înlocuiește cu path-ul către fișierul tău .db
+                using (var connection = new SqliteConnection("Data Source=database.db"))
+                {
+                    connection.Open();
+                    string query = "SELECT SettingValue FROM ApplicationSettings WHERE SettingKey = 'LastRunDatePrimary'";
+                    using (var command = new SqliteCommand(query, connection))
+                    {
+                        var result = command.ExecuteScalar();
+                        if (result != null && result != DBNull.Value)
+                        {
+                            return DateTime.Parse(result.ToString());
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Eroare la citire SQLite: {ex.Message}");
+            }
+            return DateTime.MinValue;
+        }
 
-        public string[] GetAllTonesGymnasium() => GetFilesFromFolder("Tones Gymnasium");
+        private void UpdateLastRunDateInDb(DateTime date)
+        {
+            try
+            {
+                using (var connection = new SqliteConnection("Data Source=database.db"))
+                {
+                    connection.Open();
+                    // SQLite folosește funcția datetime('now') pentru LastUpdated
+                    string query = @"UPDATE ApplicationSettings 
+                             SET SettingValue = @val, 
+                                 LastUpdated = datetime('now') 
+                             WHERE SettingKey = 'LastRunDatePrimary'";
+
+                    using (var command = new SqliteCommand(query, connection))
+                    {
+                        // Salvăm data în format string (cel mai sigur pentru SQLite)
+                        command.Parameters.AddWithValue("@val", date.ToString("yyyy-MM-dd"));
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Eroare la scriere SQLite: {ex.Message}");
+            }
+        }
 
         // Această variabilă trebuie să fie declarată în afara metodei, 
         // ca membru al clasei, pentru a-și păstra valoarea între apeluri.
-        private DateTime _lastRunDateGymnasium = DateTime.MinValue;
+        private DateTime _lastRunDatePrimary = DateTime.MinValue;
 
         public async Task StartSongsAndTonesGymnasiumAsync(CancellationToken token)
         {
+            // PASUL 1: Citirea inițială din DB la pornirea aplicației
+            _lastRunDatePrimary = GetLastRunDateFromDb();
+
             while (!token.IsCancellationRequested)
             {
                 DateTime now = DateTime.Now;
                 string today = now.DayOfWeek.ToString();
                 List<string> daysSelected = GetDaysSelectedForGymnasium();
 
-                if (daysSelected.Contains(today) && _lastRunDateGymnasium.Date != now.Date)
+                if (daysSelected.Contains(today) && _lastRunDatePrimary.Date != now.Date)
                 {
-                    var intervals = GetIntervalsAndChecksFromDatabase(1, (int)now.DayOfWeek);
-
+                    var intervals = GetIntervalsAndChecksFromDatabase(0, (int)now.DayOfWeek);
                     var lastInterval = intervals.Where(x => x.Start != "" && x.Stop != "").LastOrDefault();
                     DateTime lastTodayHour = lastInterval != null ? DateTime.Parse(lastInterval.Stop) : DateTime.MinValue;
 
+                    // PASUL 2: Cazul "Prea Târziu"
+                    // Dacă deschizi aplicația la ora 20:00 și programul s-a terminat la 18:00
                     if (now > lastTodayHour && intervals.Any())
                     {
-                        _lastRunDateGymnasium = now.Date;
+                        _lastRunDatePrimary = now.Date;
+
+                        // SALVARE ÎN DB: Marcăm ziua ca procesată deși nu am cântat nimic (e prea târziu)
+                        UpdateLastRunDateInDb(_lastRunDatePrimary);
+
                         await Task.Delay(TimeSpan.FromMinutes(30), token);
+
                         continue;
                     }
 
-                    // --- AICI ESTE LOCUL CORECT PENTRU ÎNCĂRCAREA COLECȚIILOR ---
-                    // Le încărcăm o singură dată pe zi, chiar înainte de a începe intervalele
+                    // --- Logica de încărcare resurse ---
                     string[] songs = GetAllSongsGymnasium();
                     string[] tones = GetAllTonesGymnasium();
                     int[] shuffleSongs = ShuffleAllSongsGymnasium();
                     int songCursor = 0;
-                    // ----------------------------------------------------------
 
+                    // --- Bucla de intervale ---
                     foreach (var interval in intervals)
                     {
                         if (token.IsCancellationRequested) break;
@@ -287,10 +348,16 @@ namespace ClassBellProject.Gymnasium
                         }
                     }
 
-                    _lastRunDateGymnasium = DateTime.Today;
+                    // PASUL 3: Finalizarea cu succes a zilei
+                    // Aceasta este ramura normală unde programul s-a terminat natural
+                    _lastRunDatePrimary = DateTime.Today;
+
+                    // SALVARE ÎN DB: Ziua s-a încheiat cu succes
+                    UpdateLastRunDateInDb(_lastRunDatePrimary);
                 }
                 else
                 {
+                    // Dacă data din DB == data de azi, intrăm aici și așteptăm
                     await Task.Delay(TimeSpan.FromMinutes(30), token);
                 }
 
