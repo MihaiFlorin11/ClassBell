@@ -11,29 +11,17 @@ namespace ClassBellProject
             InitializeComponent();
         }
 
-        SoundPlayer soundPlayerForATonePrimary = new SoundPlayer();
-        SoundPlayer soundPlayerForAToneGymnasium = new SoundPlayer();
+        // Playerele la nivel de clasă
+        private readonly SoundPlayer soundPlayerForATonePrimary = new SoundPlayer();
+        private readonly SoundPlayer soundPlayerForAToneGymnasium = new SoundPlayer();
 
-        public string[] GetAllTonesPrimary()
-        {
-            string[] names = Directory.GetCurrentDirectory().Split("\\");
-            string namesComposed = string.Empty;
-            foreach (string name in names)
-            {
-                if (!name.Contains("ClassBell"))
-                {
-                    namesComposed += name + "\\";
-                }
-                else
-                {
-                    namesComposed += name + "\\" + "Tones Primary";
-                    break;
-                }
-            }
-            string[] files = Directory.GetFiles(namesComposed);
+        // Cache pentru fișiere (se încarcă la pornirea aplicației sau la nevoie)
+        private string[] _cachedTonesPrimary;
+        private string[] _cachedTonesGymnasium;
 
-            return files;
-        }
+        // Alias-uri care folosesc metoda ta GetFilesFromFolder deja existentă
+        public string[] GetAllTonesPrimary() => GetFilesFromFolder("Tones Primary");
+        public string[] GetAllTonesGymnasium() => GetFilesFromFolder("Tones Gymnasium");
 
         private string[] GetFilesFromFolder(string folderName)
         {
@@ -63,78 +51,73 @@ namespace ClassBellProject
             return Directory.GetFiles(finalPath);
         }
 
-        //public double GetNumberOfSecondsOfATone(string toneLength)
-        //{
-        //    FileInfo fileInfo = new FileInfo(toneLength);
-        //    int audioSampleRate = 44100;
-        //    int audioSampleSize = 16;
-        //    int channels = 2;
-        //    long file_size = fileInfo.Length;
-        //    double duration = file_size / (audioSampleRate * (audioSampleSize / 8.0) * channels);
+        public double GetNumberOfSecondsOfATone(string filePath)
+        {
+            if (!File.Exists(filePath)) return 0;
 
-        //    return duration;
-        //}
+            FileInfo fileInfo = new FileInfo(filePath);
+            const int audioSampleRate = 44100;
+            const int audioSampleSize = 16;
+            const int channels = 2;
 
+            // Calculăm durata exactă (folosind 8.0 pentru a forța calculul double)
+            double duration = fileInfo.Length / (audioSampleRate * (audioSampleSize / 8.0) * channels);
+
+            return duration;
+        }
+
+        // Versiuni asincrone care folosesc cache-ul pentru viteză
         public async Task StartAToneByPositionPrimaryAsync(int position)
         {
-            string[] tonesPrimary = GetFilesFromFolder("Tones Primary");
-            soundPlayerForATonePrimary.SoundLocation = tonesPrimary[position];
-            soundPlayerForATonePrimary.Play();
+            // Încărcăm cache-ul dacă e gol
+            if (_cachedTonesPrimary == null) _cachedTonesPrimary = GetAllTonesPrimary();
+
+            if (position < _cachedTonesPrimary.Length)
+            {
+                soundPlayerForATonePrimary.SoundLocation = _cachedTonesPrimary[position];
+                soundPlayerForATonePrimary.Play();
+            }
         }
 
         public async Task StartAToneByPositionGymnasiumAsync(int position)
         {
-            string[] tonesGymnasium = GetFilesFromFolder("Tones Gymnasium");
-            soundPlayerForAToneGymnasium.SoundLocation = tonesGymnasium[position];
-            soundPlayerForAToneGymnasium.Play();
+            if (_cachedTonesGymnasium == null) _cachedTonesGymnasium = GetAllTonesGymnasium();
+
+            if (position < _cachedTonesGymnasium.Length)
+            {
+                soundPlayerForAToneGymnasium.SoundLocation = _cachedTonesGymnasium[position];
+                soundPlayerForAToneGymnasium.Play();
+            }
         }
 
         private void buttonPrimary_Click(object sender, EventArgs e)
         {
             PrimaryMainWindow primaryMainWindow = new PrimaryMainWindow();
-            if (!primaryMainWindow.Visible)
-            {
-                primaryMainWindow.Show();
-                buttonPrimary.Enabled = false;
-            }
-            primaryMainWindow.FormClosed += delegate
-            {
-                buttonPrimary.Enabled = true;
-            };
+            buttonPrimary.Enabled = false;
+
+            primaryMainWindow.FormClosed += (s, args) => buttonPrimary.Enabled = true;
+            primaryMainWindow.Show();
         }
 
         private void buttonGymnasium_Click(object sender, EventArgs e)
         {
             GymnasiumMainWindow gymnasiumMainWindow = new GymnasiumMainWindow();
-            if (!gymnasiumMainWindow.Visible)
-            {
-                gymnasiumMainWindow.Show();
-                buttonGymnasium.Enabled = false;
-            }
-            gymnasiumMainWindow.FormClosed += delegate
-            {
-                buttonGymnasium.Enabled = true;
-            };
+            buttonGymnasium.Enabled = false;
+
+            gymnasiumMainWindow.FormClosed += (s, args) => buttonGymnasium.Enabled = true;
+            gymnasiumMainWindow.Show();
         }
 
         private async void buttonStartEntranceTonePrimary_Click(object sender, EventArgs e)
-        {
-            await StartAToneByPositionPrimaryAsync(0);
-        }
+            => await StartAToneByPositionPrimaryAsync(0);
 
         private async void buttonStartExitTonePrimary_Click(object sender, EventArgs e)
-        {
-            await StartAToneByPositionPrimaryAsync(1);
-        }
+            => await StartAToneByPositionPrimaryAsync(1);
 
         private async void buttonStartEntranceToneGymnasium_Click(object sender, EventArgs e)
-        {
-            await StartAToneByPositionGymnasiumAsync(0);
-        }
+            => await StartAToneByPositionGymnasiumAsync(0);
 
         private async void buttonStartExitToneGymnasium_Click(object sender, EventArgs e)
-        {
-            await StartAToneByPositionGymnasiumAsync(1);
-        }
+            => await StartAToneByPositionGymnasiumAsync(1);
     }
 }

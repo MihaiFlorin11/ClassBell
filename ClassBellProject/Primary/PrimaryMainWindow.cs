@@ -1,4 +1,4 @@
-﻿using ClassBellProject.Common;
+﻿using ClassBellProject.Entity;
 using Microsoft.Data.Sqlite;
 using System.Data;
 using System.Media;
@@ -91,8 +91,8 @@ namespace ClassBellProject.Primary
             }
         }
 
-        private SoundPlayer soundPlayerForASongPrimary = new SoundPlayer();
-        private SoundPlayer soundPlayerForATonePrimary = new SoundPlayer();
+        private readonly SoundPlayer soundPlayerForASongPrimary = new SoundPlayer();
+        private readonly SoundPlayer soundPlayerForATonePrimary = new SoundPlayer();
 
         private List<string> formats = new List<string>()
         {
@@ -417,15 +417,13 @@ namespace ClassBellProject.Primary
 
         public void UpdateIntervalsAndChecksPrimaryForACertainDayInDatabase()
         {
-            string dayChecked = string.Empty;
-
             using (var sqliteConnection = new SqliteConnection($"Data Source={GetDatabasePath()}"))
             {
                 sqliteConnection.Open();
                 SqliteCommand sqliteCommand;
                 List<TimeInterval> timeInterval = new List<TimeInterval>();
 
-                dayChecked = listBoxSelectDayPrimary.SelectedItem.ToString();
+                string dayChecked = listBoxSelectDayPrimary.SelectedItem.ToString();
                 switch (dayChecked)
                 {
                     case "Luni":
@@ -4017,8 +4015,6 @@ namespace ClassBellProject.Primary
 
         public void PopulateIntervalsAndChecksSelectingDay()
         {
-            string dayChecked = string.Empty;
-
             List<TimeInterval> IntervalsAndChecksPrimary = GetIntervalsAndChecksFromDatabase();
 
             string[] startIntervalComponents;
@@ -4026,7 +4022,8 @@ namespace ClassBellProject.Primary
             string[] stopIntervalComponents;
             string[] timeStopIntervalComponents;
 
-            dayChecked = listBoxSelectDayPrimary.SelectedItem.ToString();
+            string dayChecked = listBoxSelectDayPrimary.SelectedItem.ToString();
+
             switch (dayChecked)
             {
                 case "Luni":

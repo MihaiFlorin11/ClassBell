@@ -1034,7 +1034,7 @@
             buttonStartIntervalsAndDaysGymnasium.TabIndex = 218;
             buttonStartIntervalsAndDaysGymnasium.Text = "Porneste Intervalele Si Zilele Pentru Redarea Melodiilor";
             buttonStartIntervalsAndDaysGymnasium.UseVisualStyleBackColor = true;
-            buttonStartIntervalsAndDaysGymnasium.Click += buttonStartIntervalsAndDaysGymnasium_Click;
+            buttonStartIntervalsAndDaysGymnasium.Click += buttonStartIntervalsAndDaysGymnasium_ClickAsync;
             // 
             // comboBoxStopMinuteInterval8
             // 

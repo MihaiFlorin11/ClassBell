@@ -1,4 +1,4 @@
-﻿namespace ClassBellProject.Common
+﻿namespace ClassBellProject.Entity
 {
     public class TimeInterval
     {
