@@ -206,7 +206,7 @@ namespace ClassBellProject.Primary
         {
             try
             {
-                using (var connection = new SqliteConnection($"Data Source={GetConnectionString()}"))
+                using (var connection = new SqliteConnection(GetConnectionString()))
                 {
                     connection.Open();
                     string query = "SELECT SettingValue FROM ApplicationSettings WHERE SettingKey = @key";
@@ -225,7 +225,7 @@ namespace ClassBellProject.Primary
         {
             try
             {
-                using (var connection = new SqliteConnection($"Data Source={GetConnectionString()}"))
+                using (var connection = new SqliteConnection(GetConnectionString()))
                 {
                     connection.Open();
                     string query = "UPDATE ApplicationSettings SET SettingValue = @val, LastUpdated = datetime('now') WHERE SettingKey = @key";
