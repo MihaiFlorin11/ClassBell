@@ -1,7 +1,7 @@
-﻿using ClassBellProject.Entity;
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using System.Data;
 using NAudio.Wave;
+using ClassBellProject.Common;
 
 namespace ClassBellProject.Primary
 {
@@ -246,42 +246,39 @@ namespace ClassBellProject.Primary
 
         public async Task StartSongsAndTonesPrimaryAsync(CancellationToken token)
         {
-            // PASUL 1: Citirea inițială din DB la pornirea aplicației
+            // 1. Citirea datei specifice pentru Gymnasium
             _lastRunDatePrimary = GetLastRunDateFromDb("LastRunDatePrimary");
 
             while (!token.IsCancellationRequested)
             {
                 DateTime now = DateTime.Now;
                 string today = now.DayOfWeek.ToString();
-                List<string> daysSelected = GetDaysSelectedForPrimary();
+                List<string> daysSelected = GetDaysSelectedForPrimary(); // Zilele selectate în fereastra Gymnasium
 
+                // Verificăm dacă azi este zi de școală și dacă nu a rulat deja
                 if (daysSelected.Contains(today) && _lastRunDatePrimary.Date != now.Date)
                 {
+                    // IMPORTANT: Folosim ID 1 pentru Gymnasium (așa cum ai în DB)
                     var intervals = GetIntervalsAndChecksFromDatabase(0, (int)now.DayOfWeek);
+
                     var lastInterval = intervals.Where(x => x.Start != "" && x.Stop != "").LastOrDefault();
                     DateTime lastTodayHour = lastInterval != null ? DateTime.Parse(lastInterval.Stop) : DateTime.MinValue;
 
-                    // PASUL 2: Cazul "Prea Târziu"
-                    // Dacă deschizi aplicația la ora 20:00 și programul s-a terminat la 18:00
+                    // Cazul "Prea Târziu"
                     if (now > lastTodayHour && intervals.Any())
                     {
                         _lastRunDatePrimary = now.Date;
-
-                        // SALVARE ÎN DB: Marcăm ziua ca procesată deși nu am cântat nimic (e prea târziu)
                         UpdateLastRunDateInDb("LastRunDatePrimary", _lastRunDatePrimary);
-
                         await Task.Delay(TimeSpan.FromMinutes(30), token);
-
                         continue;
                     }
 
-                    // --- Logica de încărcare resurse ---
+                    // Încărcare resurse specifice Gymnasium
                     string[] songs = GetAllSongsPrimary();
                     string[] tones = GetAllTonesPrimary();
                     int[] shuffleSongs = ShuffleAllSongsPrimary();
                     int songCursor = 0;
 
-                    // --- Bucla de intervale ---
                     foreach (var interval in intervals)
                     {
                         if (token.IsCancellationRequested) break;
@@ -290,9 +287,9 @@ namespace ClassBellProject.Primary
                         DateTime start = DateTime.Parse(interval.Start);
                         DateTime stop = DateTime.Parse(interval.Stop);
 
-                        if (DateTime.Now > stop) continue; // Folosim DateTime.Now actualizat aici
+                        if (DateTime.Now > stop) continue;
 
-                        // 1. AȘTEPTARE PÂNĂ LA START (doar dacă ora curentă e înainte de start)
+                        // 1. AȘTEPTARE PÂNĂ LA START
                         if (DateTime.Now < start)
                         {
                             while (DateTime.Now < start && !token.IsCancellationRequested)
@@ -300,11 +297,12 @@ namespace ClassBellProject.Primary
                                 await Task.Delay(500, token);
                             }
 
-                            // 2. SONERIE IEȘIRE - Se execută DOAR dacă am așteptat startul 
-                            // (adică pauza chiar acum începe)
+                            // 2. SONERIE IEȘIRE (GIMNAZIU)
                             if (interval.ExitTone && !token.IsCancellationRequested)
                             {
+                                // Va aștepta la AudioManager.AudioLock dacă Primarul cântă
                                 await StartAToneByPositionPrimaryAsync(1, tones, token);
+                                await Task.Delay(100, token);
                             }
                         }
 
@@ -322,35 +320,33 @@ namespace ClassBellProject.Primary
                             {
                                 while (DateTime.Now < stop && !token.IsCancellationRequested)
                                 {
+                                    if (DateTime.Now >= stop) break;
+
                                     double remaining = (stop - DateTime.Now).TotalMilliseconds;
                                     if (remaining < 2000) break;
 
+                                    // Va aștepta la barieră dacă e ocupat
                                     await StartASongByPositionAndTimePrimaryAsync(shuffleSongs[songCursor], stop, songs, token);
                                     songCursor = (songCursor + 1) % shuffleSongs.Length;
+
+                                    await Task.Delay(200, token);
                                 }
                             }
                         }
 
-                        // --- AICI SE PUNE ---
-                        // 4. SONERIE INTRARE (La finalul pauzei/cursului)
-                        // Se execută imediat ce timpul a ajuns la 'stop' sau buclele de mai sus s-au terminat
+                        // 4. SONERIE INTRARE (GIMNAZIU)
                         if (interval.EntranceTone && !token.IsCancellationRequested)
                         {
                             await StartAToneByPositionPrimaryAsync(0, tones, token);
                         }
+                    }
 
-                    } // <--- Aici se închide foreach (trece la următorul interval din baza de date)
-
-                    // PASUL 3: Finalizarea cu succes a zilei
-                    // Aceasta este ramura normală unde programul s-a terminat natural
+                    // Finalizarea zilei pentru Gymnasium
                     _lastRunDatePrimary = DateTime.Today;
-
-                    // SALVARE ÎN DB: Ziua s-a încheiat cu succes
                     UpdateLastRunDateInDb("LastRunDatePrimary", _lastRunDatePrimary);
                 }
                 else
                 {
-                    // Dacă data din DB == data de azi, intrăm aici și așteptăm
                     await Task.Delay(TimeSpan.FromMinutes(30), token);
                 }
 
@@ -445,13 +441,15 @@ namespace ClassBellProject.Primary
             }
         }
 
-        // Am adăugat CancellationToken token ca parametru
         public async Task StartAToneByPositionPrimaryAsync(int position, string[] cachedTones, CancellationToken token)
         {
             if (position < 0 || position >= cachedTones.Length) return;
 
             string tonePath = cachedTones[position];
             if (!File.Exists(tonePath)) return;
+
+            // 1. Așteptăm rândul la placa de sunet
+            await AudioManager.AudioLock.WaitAsync(token);
 
             try
             {
@@ -463,14 +461,26 @@ namespace ClassBellProject.Primary
 
                     outputDevice.Play();
 
-                    // Folosim token-ul primit ca parametru
+                    // 2. Așteptăm ca tonul să se termine înainte de a ieși din blocul 'try'
+                    // Astfel, lock-ul rămâne ocupat pe toată durata sunetului
                     await Task.Delay(durationMs, token);
 
                     outputDevice.Stop();
                 }
             }
-            catch (OperationCanceledException) { /* Oprire normală */ }
-            catch (Exception ex) { Console.WriteLine($"Eroare NAudio Ton: {ex.Message}"); }
+            catch (OperationCanceledException)
+            {
+                // Oprire normală prin CancellationToken
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Eroare NAudio Ton Primary: {ex.Message}");
+            }
+            finally
+            {
+                // 3. ELIBERĂM placa de sunet pentru oricine altcineva (Gimnaziu sau alte tonuri)
+                AudioManager.AudioLock.Release();
+            }
         }
 
         private static readonly Random rng = new Random();
