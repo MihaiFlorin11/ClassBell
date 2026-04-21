@@ -1,6 +1,6 @@
 using ClassBellProject.Gymnasium;
 using ClassBellProject.Primary;
-using System.Media;
+using NAudio.Wave;
 
 namespace ClassBellProject
 {
@@ -11,11 +11,10 @@ namespace ClassBellProject
             InitializeComponent();
         }
 
-        // Playerele la nivel de clasă
-        private readonly SoundPlayer soundPlayerForATonePrimary = new SoundPlayer();
-        private readonly SoundPlayer soundPlayerForAToneGymnasium = new SoundPlayer();
+        // La nivel de clasă
+        private WaveOutEvent _manualOutputDevice;
+        private AudioFileReader _manualAudioFile;
 
-        // Cache pentru fișiere (se încarcă la pornirea aplicației sau la nevoie)
         private string[] _cachedTonesPrimary;
         private string[] _cachedTonesGymnasium;
 
@@ -25,68 +24,82 @@ namespace ClassBellProject
 
         private string[] GetFilesFromFolder(string folderName)
         {
-            // Aceasta este calea FIXĂ a folderului unde este instalată aplicația
-            string basePath = AppDomain.CurrentDomain.BaseDirectory;
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            string finalPath = Path.Combine(currentPath, folderName);
 
-            // Curățăm calea pentru a găsi folderul rădăcină "ClassBell"
-            // Dacă după publish folderul "Tones Primary" este direct lângă .exe, 
-            // nu mai avem nevoie de logica cu IndexOf("ClassBell")
-
-            string rootPath = basePath;
-            if (basePath.Contains("ClassBell"))
-            {
-                rootPath = basePath.Substring(0, basePath.IndexOf("ClassBell") + "ClassBell".Length);
-            }
-
-            // Construim calea finală
-            string finalPath = Path.Combine(rootPath, folderName);
-
+            // Logică de siguranță pentru Debug (Visual Studio)
             if (!Directory.Exists(finalPath))
             {
-                // Debug: Te ajută să vezi în consolă unde caută de fapt aplicația
-                Console.WriteLine($"Eroare: Folderul nu a fost găsit la calea: {finalPath}");
-                return Array.Empty<string>();
+                DirectoryInfo parent = Directory.GetParent(currentPath);
+                while (parent != null)
+                {
+                    string checkPath = Path.Combine(parent.FullName, folderName);
+                    if (Directory.Exists(checkPath)) { finalPath = checkPath; break; }
+                    parent = parent.Parent;
+                }
             }
 
-            return Directory.GetFiles(finalPath);
+            if (!Directory.Exists(finalPath)) return Array.Empty<string>();
+
+            // Luăm doar WAV și MP3
+            string[] extensions = { ".wav", ".mp3" };
+            return Directory.GetFiles(finalPath)
+                            .Where(file => extensions.Contains(Path.GetExtension(file).ToLower()))
+                            .ToArray();
         }
 
-        public double GetNumberOfSecondsOfATone(string filePath)
+        public async Task PlayToneAsync(string filePath)
         {
-            if (!File.Exists(filePath)) return 0;
+            if (!File.Exists(filePath)) return;
 
-            FileInfo fileInfo = new FileInfo(filePath);
-            const int audioSampleRate = 44100;
-            const int audioSampleSize = 16;
-            const int channels = 2;
+            try
+            {
+                // Oprim ce cânta anterior pe acest player manual
+                _manualOutputDevice?.Stop();
+                _manualAudioFile?.Dispose();
+                _manualOutputDevice?.Dispose();
 
-            // Calculăm durata exactă (folosind 8.0 pentru a forța calculul double)
-            double duration = fileInfo.Length / (audioSampleRate * (audioSampleSize / 8.0) * channels);
+                _manualOutputDevice = new WaveOutEvent();
+                _manualAudioFile = new AudioFileReader(filePath);
 
-            return duration;
+                _manualOutputDevice.Init(_manualAudioFile);
+                _manualOutputDevice.Play();
+
+                // Așteptăm să se termine tonul
+                int durationMs = (int)_manualAudioFile.TotalTime.TotalMilliseconds;
+                await Task.Delay(durationMs);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Eroare redare: {ex.Message}");
+            }
+            finally
+            {
+                // Curățăm resursele după ce s-a terminat Task.Delay
+                _manualAudioFile?.Dispose();
+                _manualOutputDevice?.Dispose();
+                _manualAudioFile = null;
+                _manualOutputDevice = null;
+            }
         }
 
-        // Versiuni asincrone care folosesc cache-ul pentru viteză
         public async Task StartAToneByPositionPrimaryAsync(int position)
         {
-            // Încărcăm cache-ul dacă e gol
-            if (_cachedTonesPrimary == null) _cachedTonesPrimary = GetAllTonesPrimary();
+            if (_cachedTonesPrimary == null) _cachedTonesPrimary = GetFilesFromFolder("Tones Primary");
 
-            if (position < _cachedTonesPrimary.Length)
+            if (position >= 0 && position < _cachedTonesPrimary.Length)
             {
-                soundPlayerForATonePrimary.SoundLocation = _cachedTonesPrimary[position];
-                soundPlayerForATonePrimary.Play();
+                await PlayToneAsync(_cachedTonesPrimary[position]);
             }
         }
 
         public async Task StartAToneByPositionGymnasiumAsync(int position)
         {
-            if (_cachedTonesGymnasium == null) _cachedTonesGymnasium = GetAllTonesGymnasium();
+            if (_cachedTonesGymnasium == null) _cachedTonesGymnasium = GetFilesFromFolder("Tones Gymnasium");
 
-            if (position < _cachedTonesGymnasium.Length)
+            if (position >= 0 && position < _cachedTonesGymnasium.Length)
             {
-                soundPlayerForAToneGymnasium.SoundLocation = _cachedTonesGymnasium[position];
-                soundPlayerForAToneGymnasium.Play();
+                await PlayToneAsync(_cachedTonesGymnasium[position]);
             }
         }
 

@@ -1,7 +1,6 @@
 ﻿using ClassBellProject.Entity;
 using Microsoft.Data.Sqlite;
 using System.Data;
-using System.Media;
 using NAudio.Wave;
 
 namespace ClassBellProject.Primary
@@ -207,7 +206,7 @@ namespace ClassBellProject.Primary
         {
             try
             {
-                using (var connection = new SqliteConnection("Data Source=database.db"))
+                using (var connection = new SqliteConnection($"Data Source={GetConnectionString()}"))
                 {
                     connection.Open();
                     string query = "SELECT SettingValue FROM ApplicationSettings WHERE SettingKey = @key";
@@ -226,7 +225,7 @@ namespace ClassBellProject.Primary
         {
             try
             {
-                using (var connection = new SqliteConnection("Data Source=database.db"))
+                using (var connection = new SqliteConnection($"Data Source={GetConnectionString()}"))
                 {
                     connection.Open();
                     string query = "UPDATE ApplicationSettings SET SettingValue = @val, LastUpdated = datetime('now') WHERE SettingKey = @key";
@@ -293,51 +292,54 @@ namespace ClassBellProject.Primary
 
                         if (DateTime.Now > stop) continue; // Folosim DateTime.Now actualizat aici
 
-                        // 1. AȘTEPTARE PÂNĂ LA START
-                        while (DateTime.Now < start && !token.IsCancellationRequested)
+                        // 1. AȘTEPTARE PÂNĂ LA START (doar dacă ora curentă e înainte de start)
+                        if (DateTime.Now < start)
                         {
-                            await Task.Delay(500, token);
-                        }
+                            while (DateTime.Now < start && !token.IsCancellationRequested)
+                            {
+                                await Task.Delay(500, token);
+                            }
 
-                        // 2. SONERIE IEȘIRE - Trimitem lista de tonuri deja încărcată
-                        if (interval.ExitTone && !token.IsCancellationRequested)
-                        {
-                            await StartAToneByPositionPrimaryAsync(1, tones, token);
+                            // 2. SONERIE IEȘIRE - Se execută DOAR dacă am așteptat startul 
+                            // (adică pauza chiar acum începe)
+                            if (interval.ExitTone && !token.IsCancellationRequested)
+                            {
+                                await StartAToneByPositionPrimaryAsync(1, tones, token);
+                            }
                         }
 
                         // 3. LOGICĂ MUZICĂ SAU CURS
-                        if (interval.HoldCourse)
+                        if (DateTime.Now < stop && !token.IsCancellationRequested)
                         {
-                            while (DateTime.Now < stop && !token.IsCancellationRequested)
+                            if (interval.HoldCourse)
                             {
-                                await Task.Delay(1000, token);
+                                while (DateTime.Now < stop && !token.IsCancellationRequested)
+                                {
+                                    await Task.Delay(1000, token);
+                                }
                             }
-                        }
-                        else if (interval.HoldMusic)
-                        {
-                            // Cât timp suntem în intervalul de muzică și nu s-a dat Cancel
-                            while (DateTime.Now < stop && !token.IsCancellationRequested)
+                            else if (interval.HoldMusic)
                             {
-                                // 1. Verificăm cât timp mai este până la curs
-                                double remaining = (stop - DateTime.Now).TotalMilliseconds;
+                                while (DateTime.Now < stop && !token.IsCancellationRequested)
+                                {
+                                    double remaining = (stop - DateTime.Now).TotalMilliseconds;
+                                    if (remaining < 2000) break;
 
-                                // Dacă au mai rămas mai puțin de 2 secunde, nu mai are sens să pornim altă melodie
-                                if (remaining < 2000) break;
-
-                                // 2. Redăm melodia (metoda va aștepta aici datorită await-ului)
-                                await StartASongByPositionAndTimePrimaryAsync(shuffleSongs[songCursor], stop, songs, token);
-
-                                // 3. Trecem la următoarea melodie din listă
-                                songCursor = (songCursor + 1) % shuffleSongs.Length;
+                                    await StartASongByPositionAndTimePrimaryAsync(shuffleSongs[songCursor], stop, songs, token);
+                                    songCursor = (songCursor + 1) % shuffleSongs.Length;
+                                }
                             }
                         }
 
-                        // 4. SONERIE INTRARE - Trimitem lista de tonuri
+                        // --- AICI SE PUNE ---
+                        // 4. SONERIE INTRARE (La finalul pauzei/cursului)
+                        // Se execută imediat ce timpul a ajuns la 'stop' sau buclele de mai sus s-au terminat
                         if (interval.EntranceTone && !token.IsCancellationRequested)
                         {
                             await StartAToneByPositionPrimaryAsync(0, tones, token);
                         }
-                    }
+
+                    } // <--- Aici se închide foreach (trece la următorul interval din baza de date)
 
                     // PASUL 3: Finalizarea cu succes a zilei
                     // Aceasta este ramura normală unde programul s-a terminat natural
