@@ -2,6 +2,7 @@
 using Microsoft.Data.Sqlite;
 using System.Data;
 using System.Media;
+using NAudio.Wave;
 
 namespace ClassBellProject.Primary
 {
@@ -90,9 +91,6 @@ namespace ClassBellProject.Primary
                 comboBoxStopMinuteInterval10.Items.Add(minute);
             }
         }
-
-        private readonly SoundPlayer soundPlayerForASongPrimary = new SoundPlayer();
-        private readonly SoundPlayer soundPlayerForATonePrimary = new SoundPlayer();
 
         private List<string> formats = new List<string>()
         {
@@ -304,7 +302,7 @@ namespace ClassBellProject.Primary
                         // 2. SONERIE IEȘIRE - Trimitem lista de tonuri deja încărcată
                         if (interval.ExitTone && !token.IsCancellationRequested)
                         {
-                            await StartAToneByPositionPrimaryAsync(1, tones);
+                            await StartAToneByPositionPrimaryAsync(1, tones, token);
                         }
 
                         // 3. LOGICĂ MUZICĂ SAU CURS
@@ -317,11 +315,19 @@ namespace ClassBellProject.Primary
                         }
                         else if (interval.HoldMusic)
                         {
+                            // Cât timp suntem în intervalul de muzică și nu s-a dat Cancel
                             while (DateTime.Now < stop && !token.IsCancellationRequested)
                             {
-                                // Trimitem lista de melodii "songs" ca să nu le mai citească din nou de pe disc
-                                await StartASongByPositionAndTimePrimaryAsync(shuffleSongs[songCursor], stop, songs);
+                                // 1. Verificăm cât timp mai este până la curs
+                                double remaining = (stop - DateTime.Now).TotalMilliseconds;
 
+                                // Dacă au mai rămas mai puțin de 2 secunde, nu mai are sens să pornim altă melodie
+                                if (remaining < 2000) break;
+
+                                // 2. Redăm melodia (metoda va aștepta aici datorită await-ului)
+                                await StartASongByPositionAndTimePrimaryAsync(shuffleSongs[songCursor], stop, songs, token);
+
+                                // 3. Trecem la următoarea melodie din listă
                                 songCursor = (songCursor + 1) % shuffleSongs.Length;
                             }
                         }
@@ -329,7 +335,7 @@ namespace ClassBellProject.Primary
                         // 4. SONERIE INTRARE - Trimitem lista de tonuri
                         if (interval.EntranceTone && !token.IsCancellationRequested)
                         {
-                            await StartAToneByPositionPrimaryAsync(0, tones);
+                            await StartAToneByPositionPrimaryAsync(0, tones, token);
                         }
                     }
 
@@ -352,116 +358,133 @@ namespace ClassBellProject.Primary
 
         private string[] GetFilesFromFolder(string folderName)
         {
-            // Aceasta este calea FIXĂ a folderului unde este instalată aplicația
-            string basePath = AppDomain.CurrentDomain.BaseDirectory;
+            // 1. Începem de la folderul unde rulează .exe-ul
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
 
-            // Curățăm calea pentru a găsi folderul rădăcină "ClassBell"
-            // Dacă după publish folderul "Tones Primary" este direct lângă .exe, 
-            // nu mai avem nevoie de logica cu IndexOf("ClassBell")
+            // 2. Căutăm folderul în locația curentă
+            string finalPath = Path.Combine(currentPath, folderName);
 
-            string rootPath = basePath;
-            if (basePath.Contains("ClassBell"))
+            // 3. LOGICĂ DE BACKUP (pentru Visual Studio)
+            // Dacă nu există lângă .exe, urcăm în sus pe ierarhie (spre folderul proiectului)
+            // util când ești în bin/Debug/net8.0/...
+            if (!Directory.Exists(finalPath))
             {
-                rootPath = basePath.Substring(0, basePath.IndexOf("ClassBell") + "ClassBell".Length);
+                DirectoryInfo parent = Directory.GetParent(currentPath);
+                while (parent != null)
+                {
+                    string checkPath = Path.Combine(parent.FullName, folderName);
+                    if (Directory.Exists(checkPath))
+                    {
+                        finalPath = checkPath;
+                        break;
+                    }
+                    parent = parent.Parent;
+                }
             }
-
-            // Construim calea finală
-            string finalPath = Path.Combine(rootPath, folderName);
 
             if (!Directory.Exists(finalPath))
             {
-                // Debug: Te ajută să vezi în consolă unde caută de fapt aplicația
-                Console.WriteLine($"Eroare: Folderul nu a fost găsit la calea: {finalPath}");
+                Console.WriteLine($"Eroare: Folderul '{folderName}' nu a fost găsit.");
                 return Array.Empty<string>();
             }
 
-            return Directory.GetFiles(finalPath);
+            // 4. FILTRARE (Foarte important pentru NAudio/SoundPlayer)
+            // Luăm doar fișierele audio valide pentru a evita erori dacă în folder există poze sau log-uri
+            string[] extensions = { ".wav", ".mp3" };
+            return Directory.GetFiles(finalPath)
+                            .Where(file => extensions.Contains(Path.GetExtension(file).ToLower()))
+                            .ToArray();
         }
 
-        public decimal GetNumberOfSecondsOfASongPrimary(string filePath)
+        // În loc de SoundPlayer, folosim aceste două obiecte la nivel de clasă
+        private WaveOutEvent _outputDevicePrimary;
+        private AudioFileReader _audioFilePrimary;
+
+        public async Task StartASongByPositionAndTimePrimaryAsync(int position, DateTime stopTime, string[] cachedSongs, CancellationToken token)
         {
-            FileInfo fileInfo = new FileInfo(filePath);
-
-            // 44100 Hz * 2 bytes (16-bit) * 2 channels = 176.400 bytes pe secundă
-            const int bytesPerSecond = 44100 * 2 * 2;
-
-            // Calculăm durata exactă
-            decimal duration = (decimal)fileInfo.Length / bytesPerSecond;
-
-            // Rotunjim în sus la cea mai apropiată secundă pentru siguranță
-            return Math.Ceiling(duration);
-        }
-
-        public decimal GetNumberOfSecondsOfATonePrimary(string filePath)
-        {
-            FileInfo fileInfo = new FileInfo(filePath);
-
-            // Parametrii standard pentru WAV (CD Quality)
-            const int sampleRate = 44100;
-            const int bytesPerSample = 2; // 16 bit / 8
-            const int channels = 2;
-
-            // Bytes per second = 44100 * 2 * 2 = 176,400 bytes/sec
-            int bytesPerSecond = sampleRate * bytesPerSample * channels;
-
-            decimal duration = (decimal)fileInfo.Length / bytesPerSecond;
-
-            // Rotunjim în sus (Math.Ceiling) pentru a ne asigura că nu tăiem din finalul sunetului
-            return Math.Ceiling(duration);
-        }
-
-        public async Task StartASongByPositionAndTimePrimaryAsync(int position, DateTime stopTime, string[] cachedSongs)
-        {
-            if (position >= cachedSongs.Length) return;
-
+            if (position < 0 || position >= cachedSongs.Length) return;
             string songPath = cachedSongs[position];
-            soundPlayerForASongPrimary.SoundLocation = songPath;
 
-            // Obținem durata și calculăm cât timp mai avem până la ora de Stop
-            int durationMs = (int)(GetNumberOfSecondsOfASongPrimary(songPath) * 1000);
-            int remainingTimeMs = (int)(stopTime - DateTime.Now).TotalMilliseconds;
+            double remainingTimeMs = (stopTime - DateTime.Now).TotalMilliseconds;
+            if (remainingTimeMs <= 0) return;
 
-            // Cântăm fie toată melodia, fie cât a mai rămas până la Stop (care e mai mică)
-            int waitTime = Math.Min(durationMs, remainingTimeMs);
-
-            if (waitTime > 0)
+            try
             {
-                soundPlayerForASongPrimary.Play();
-                await Task.Delay(waitTime);
-                soundPlayerForASongPrimary.Stop(); // Oprirea explicită e mai sigură
+                // 1. CURĂȚARE ÎNAINTE DE PORNIRE
+                _outputDevicePrimary?.Stop();
+                _outputDevicePrimary?.Dispose();
+                _audioFilePrimary?.Dispose();
+                _outputDevicePrimary = null;
+                _audioFilePrimary = null;
+
+                // 2. INIȚIALIZARE
+                _outputDevicePrimary = new WaveOutEvent();
+                _audioFilePrimary = new AudioFileReader(songPath);
+                _outputDevicePrimary.Init(_audioFilePrimary);
+
+                int durationMs = (int)(_audioFilePrimary.TotalTime.TotalMilliseconds);
+                int playTimeMs = (int)Math.Min(durationMs, (int)remainingTimeMs);
+
+                _outputDevicePrimary.Play();
+
+                // 3. AȘTEPTARE (cu token!)
+                await Task.Delay(playTimeMs, token);
+
+                _outputDevicePrimary?.Stop();
+            }
+            catch (OperationCanceledException) { /* Oprire normală prin butonul Stop */ }
+            catch (Exception ex) { Console.WriteLine($"Eroare NAudio Melodie: {ex.Message}"); }
+            finally
+            {
+                _audioFilePrimary?.Dispose();
+                _outputDevicePrimary?.Dispose();
+                _audioFilePrimary = null;
+                _outputDevicePrimary = null;
             }
         }
 
-        public async Task StartAToneByPositionPrimaryAsync(int position, string[] cachedTones)
+        // Am adăugat CancellationToken token ca parametru
+        public async Task StartAToneByPositionPrimaryAsync(int position, string[] cachedTones, CancellationToken token)
         {
-            if (position >= cachedTones.Length) return;
+            if (position < 0 || position >= cachedTones.Length) return;
 
             string tonePath = cachedTones[position];
-            soundPlayerForATonePrimary.SoundLocation = tonePath;
+            if (!File.Exists(tonePath)) return;
 
-            int durationMs = (int)(GetNumberOfSecondsOfATonePrimary(tonePath) * 1000);
+            try
+            {
+                using (var outputDevice = new WaveOutEvent())
+                using (var audioFile = new AudioFileReader(tonePath))
+                {
+                    outputDevice.Init(audioFile);
+                    int durationMs = (int)audioFile.TotalTime.TotalMilliseconds;
 
-            soundPlayerForATonePrimary.Play();
-            await Task.Delay(durationMs);
+                    outputDevice.Play();
+
+                    // Folosim token-ul primit ca parametru
+                    await Task.Delay(durationMs, token);
+
+                    outputDevice.Stop();
+                }
+            }
+            catch (OperationCanceledException) { /* Oprire normală */ }
+            catch (Exception ex) { Console.WriteLine($"Eroare NAudio Ton: {ex.Message}"); }
         }
 
-        private Random rng = new Random();
+        private static readonly Random rng = new Random();
 
         public int[] ShuffleAllSongsPrimary()
         {
             string[] songsPrimary = GetFilesFromFolder("Songs Primary");
+            if (songsPrimary.Length == 0) return Array.Empty<int>();
+
             int[] songsPositions = Enumerable.Range(0, songsPrimary.Length).ToArray();
-            int length = songsPrimary.Length;
 
-            while (length > 1)
+            for (int i = songsPositions.Length - 1; i > 0; i--)
             {
-                length--;
-
-                int songPosition = rng.Next(length + 1);
-
-                int value = songsPositions[songPosition];
-                songsPositions[songPosition] = songsPositions[length];
-                songsPositions[length] = value;
+                int j = rng.Next(i + 1);
+                // Swap elegant folosind tuple (C# 7.0+)
+                (songsPositions[i], songsPositions[j]) = (songsPositions[j], songsPositions[i]);
             }
 
             return songsPositions;
@@ -469,7 +492,7 @@ namespace ClassBellProject.Primary
 
         public void UpdateTableTimeIntervalForACertainDayInDatabase()
         {
-            using (var sqliteConnection = new SqliteConnection($"Data Source={GetDatabasePath()}"))
+            using (var sqliteConnection = new SqliteConnection($"Data Source={GetConnectionString()}"))
             {
                 sqliteConnection.Open();
                 SqliteCommand sqliteCommand;
@@ -1009,14 +1032,17 @@ namespace ClassBellProject.Primary
             return Path.Combine(baseDirectory, "ClassBellProjectDatabase.db");
         }
 
-        // 1. Definim connection string-ul într-un singur loc (ex: variabilă globală sau setare)
         private string GetConnectionString()
         {
-            // Dacă baza de date este în folderul binar al aplicației:
-            return $"Data Source={GetDatabasePath()}";
+            var builder = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder
+            {
+                DataSource = GetDatabasePath(),
+                Mode = Microsoft.Data.Sqlite.SqliteOpenMode.ReadWriteCreate // Opțional: creează fișierul dacă nu există
+            };
+
+            return builder.ConnectionString;
         }
 
-        // 2. Metoda unificată care înlocuiește vechea dependență
         public List<TimeInterval> GetIntervalsAndChecksFromDatabase(int? cycleId = null, int? dayId = null)
         {
             var timeIntervals = new List<TimeInterval>();
@@ -1025,7 +1051,6 @@ namespace ClassBellProject.Primary
             {
                 connection.Open();
 
-                // Construim SQL-ul dinamic în funcție de filtre
                 string sql = "SELECT * FROM TimeInterval WHERE 1 = 1";
                 if (cycleId.HasValue) sql += " AND CycleId = @cycleId";
                 if (dayId.HasValue) sql += " AND DayId = @dayId";
@@ -1039,18 +1064,22 @@ namespace ClassBellProject.Primary
                     {
                         while (reader.Read())
                         {
+                            // Folosim GetOrdinal pentru a fi siguri că luăm coloana corectă după nume, 
+                            // indiferent de ordinea ei în tabel
                             timeIntervals.Add(new TimeInterval
                             {
-                                Id = reader.GetInt32(0),
-                                CycleId = reader.GetInt32(1),
-                                DayId = reader.GetInt32(2),
-                                Start = reader.GetString(3),
-                                Stop = reader.GetString(4),
-                                ExitTone = reader.GetBoolean(5), // SqliteDataReader știe să facă singur conversia 0/1 -> bool
-                                EntranceTone = reader.GetBoolean(6),
-                                HoldMusic = reader.GetBoolean(7),
-                                HoldOn = reader.GetBoolean(8),
-                                HoldCourse = reader.GetBoolean(9)
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                CycleId = reader.GetInt32(reader.GetOrdinal("CycleId")),
+                                DayId = reader.GetInt32(reader.GetOrdinal("DayId")),
+                                Start = reader.GetString(reader.GetOrdinal("Start")),
+                                Stop = reader.GetString(reader.GetOrdinal("Stop")),
+
+                                // Conversie explicită și sigură pentru Boolean
+                                ExitTone = reader.GetInt32(reader.GetOrdinal("ExitTone")) == 1,
+                                EntranceTone = reader.GetInt32(reader.GetOrdinal("EntranceTone")) == 1,
+                                HoldMusic = reader.GetInt32(reader.GetOrdinal("HoldMusic")) == 1,
+                                HoldOn = reader.GetInt32(reader.GetOrdinal("HoldOn")) == 1,
+                                HoldCourse = reader.GetInt32(reader.GetOrdinal("HoldCourse")) == 1
                             });
                         }
                     }
@@ -1282,54 +1311,59 @@ namespace ClassBellProject.Primary
 
         private async void buttonStartIntervalsAndDaysPrimary_ClickAsync(object sender, EventArgs e)
         {
-            if (ctsPrimary != null) return; // Deja rulează
+            if (ctsPrimary != null) return;
 
-            // Luăm zilele folosind metoda universală pe care am discutat-o anterior
             List<string> daysSelected = GetDaysSelectedForPrimary();
-
             if (daysSelected.Count == 0)
             {
-                MessageBox.Show("Selectează zilele pentru ciclul primar!");
+                MessageBox.Show("Selectează zilele!");
                 return;
             }
 
+            // Pregătim UI-ul
             buttonStartIntervalsAndDaysPrimary.Enabled = false;
+            buttonStopIntervalsAndDaysPrimary.Enabled = true; // ACTIVĂM Stop-ul aici
+
             ctsPrimary = new CancellationTokenSource();
 
             try
             {
-                // Pornim procesul
                 await StartSongsAndTonesPrimaryAsync(ctsPrimary.Token);
             }
-            catch (OperationCanceledException)
-            {
-                // Este normal să ajungem aici când apăsăm STOP, nu facem nimic special
-            }
+            catch (OperationCanceledException) { /* Ignorăm, e oprire controlată */ }
             catch (Exception ex)
             {
-                MessageBox.Show($"A apărut o eroare: {ex.Message}");
+                MessageBox.Show($"Eroare: {ex.Message}");
             }
             finally
             {
-                // Curățăm CTS-ul când task-ul se termină (prin eroare sau stop)
+                // CURĂȚENIA SE FACE DOAR AICI
+                ctsPrimary?.Dispose();
                 ctsPrimary = null;
+
                 buttonStartIntervalsAndDaysPrimary.Enabled = true;
+                buttonStopIntervalsAndDaysPrimary.Enabled = false;
             }
         }
 
         private void buttonStopIntervalsAndDaysPrimary_Click(object sender, EventArgs e)
         {
-            if (ctsPrimary != null)
+            // 1. Doar cerem anularea. Task-ul principal va "simți" asta și se va opri singur.
+            if (ctsPrimary != null && !ctsPrimary.IsCancellationRequested)
             {
                 ctsPrimary.Cancel();
-                ctsPrimary.Dispose(); // Foarte important să eliberezi resursele
-                ctsPrimary = null;
             }
 
-            soundPlayerForASongPrimary.Stop();
-            soundPlayerForATonePrimary.Stop();
+            // 2. Oprire instantanee sunet (pentru că avem variabile globale)
+            try
+            {
+                _outputDevicePrimary?.Stop();
+                // Nu dăm Dispose aici, lăsăm metoda Start... să facă asta în finally-ul ei
+                // pentru a evita ObjectDisposedException dacă task-ul încă rula.
+            }
+            catch { }
 
-            buttonStartIntervalsAndDaysPrimary.Enabled = true;
+            // NOTĂ: Nu activăm buttonStart aici, se va activa singur în finally-ul de mai sus!
         }
 
         private void listBoxSelectDayPrimary_SelectedIndexChanged(object sender, EventArgs e)
