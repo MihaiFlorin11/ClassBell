@@ -477,10 +477,10 @@ namespace ClassBellProject.Gymnasium
 
         public int[] ShuffleAllSongsGymnasium()
         {
-            string[] songsPrimary = GetFilesFromFolder("Songs Primary");
-            if (songsPrimary.Length == 0) return Array.Empty<int>();
+            string[] songsGymnasium = GetFilesFromFolder("Songs Gymnasium");
+            if (songsGymnasium.Length == 0) return Array.Empty<int>();
 
-            int[] songsPositions = Enumerable.Range(0, songsPrimary.Length).ToArray();
+            int[] songsPositions = Enumerable.Range(0, songsGymnasium.Length).ToArray();
 
             for (int i = songsPositions.Length - 1; i > 0; i--)
             {
