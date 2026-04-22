@@ -258,10 +258,24 @@ namespace ClassBellProject.Gymnasium
                 // Verificăm dacă azi este zi de școală și dacă nu a rulat deja
                 if (daysSelected.Contains(today) && _lastRunDateGymnasium.Date != now.Date)
                 {
-                    // IMPORTANT: Folosim ID 1 pentru Gymnasium (așa cum ai în DB)
+                    // 1. Descarcă intervalele
                     var intervals = GetIntervalsAndChecksFromDatabase(1, (int)now.DayOfWeek);
 
-                    var lastInterval = intervals.Where(x => x.Start != "" && x.Stop != "").LastOrDefault();
+                    // 2. FILTRARE: Verifică dacă există cel puțin un interval valid (ne-gol)
+                    bool hasValidIntervals = intervals.Any(x => !string.IsNullOrEmpty(x.Start) && !string.IsNullOrEmpty(x.Stop));
+
+                    if (!hasValidIntervals)
+                    {
+                        // Dacă nu avem nimic de făcut azi, marcăm ziua ca terminată în DB
+                        _lastRunDateGymnasium = now.Date;
+                        UpdateLastRunDateInDb("LastRunDateGymnasium", _lastRunDateGymnasium);
+
+                        // Așteptăm o perioadă mai lungă și sărim peste restul logicii
+                        await Task.Delay(TimeSpan.FromMinutes(30), token);
+                        continue;
+                    }
+
+                    var lastInterval = intervals.Where(x => !string.IsNullOrEmpty(x.Start) && !string.IsNullOrEmpty(x.Stop)).LastOrDefault();
                     DateTime lastTodayHour = lastInterval != null ? DateTime.Parse(lastInterval.Stop) : DateTime.MinValue;
 
                     // Cazul "Prea Târziu"
