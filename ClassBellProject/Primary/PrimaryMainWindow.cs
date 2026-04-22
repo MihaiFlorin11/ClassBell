@@ -518,7 +518,7 @@ namespace ClassBellProject.Primary
 
         public void UpdateTableTimeIntervalForACertainDayInDatabase()
         {
-            using (var sqliteConnection = new SqliteConnection($"Data Source={GetConnectionString()}"))
+            using (var sqliteConnection = new SqliteConnection(GetConnectionString()))
             {
                 sqliteConnection.Open();
                 SqliteCommand sqliteCommand;
