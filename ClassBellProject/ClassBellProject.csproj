@@ -13,8 +13,4 @@
     <PackageReference Include="NAudio" Version="2.3.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Entity\" />
-  </ItemGroup>
-
 </Project>
